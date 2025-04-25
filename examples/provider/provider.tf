@@ -1,3 +1,3 @@
-provider "scaffolding" {
+provider "adverity" {
   # example configuration here
 }
