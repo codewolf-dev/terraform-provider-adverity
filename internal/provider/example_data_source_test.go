@@ -19,10 +19,10 @@ func TestAccExampleDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccExampleDataSourceConfig,
+				Config: providerConfig + testAccExampleDataSourceConfig,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(
-						"data.scaffolding_example.test",
+						"data.adverity_example.test",
 						tfjsonpath.New("id"),
 						knownvalue.StringExact("example-id"),
 					),
@@ -33,7 +33,7 @@ func TestAccExampleDataSource(t *testing.T) {
 }
 
 const testAccExampleDataSourceConfig = `
-data "scaffolding_example" "test" {
+data "adverity_example" "test" {
   configurable_attribute = "example"
 }
 `
