@@ -1,8 +1,6 @@
 package adverity
 
 import (
-	"bytes"
-	"encoding/json"
 	"net/url"
 )
 
@@ -56,85 +54,46 @@ type WorkspaceResponse struct {
 	Created                   string `json:"created"`
 }
 
-func (client *Client) CreateWorkspace(req CreateWorkspaceRequest) (*WorkspaceResponse, error) {
+func (c *Client) CreateWorkspace(req *CreateWorkspaceRequest) (*WorkspaceResponse, error) {
 	path, _ := url.JoinPath("stacks", "/")
 
-	payload, err := json.Marshal(req)
+	resp, err := Create[CreateWorkspaceRequest, WorkspaceResponse](c, path, req)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := client.create(path, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	res := &WorkspaceResponse{}
-	err = json.Unmarshal(body, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return resp, nil
 }
 
-func (client *Client) ReadWorkspace(req ReadWorkspaceRequest) (*WorkspaceResponse, error) {
+func (c *Client) ReadWorkspace(req *ReadWorkspaceRequest) (*WorkspaceResponse, error) {
 	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
 
-	body, err := client.read(path)
+	resp, err := Read[WorkspaceResponse](c, path)
 	if err != nil {
 		return nil, err
 	}
 
-	res := &WorkspaceResponse{}
-	err = json.Unmarshal(body, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return resp, nil
 }
 
-func (client *Client) UpdateWorkspace(req UpdateWorkspaceRequest) (*WorkspaceResponse, error) {
+func (c *Client) UpdateWorkspace(req *UpdateWorkspaceRequest) (*WorkspaceResponse, error) {
 	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
 
-	payload, err := json.Marshal(req)
+	resp, err := Update[UpdateWorkspaceRequest, WorkspaceResponse](c, path, req)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := client.update(path, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	res := &WorkspaceResponse{}
-	err = json.Unmarshal(body, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return resp, nil
 }
 
-func (client *Client) DeleteWorkspace(req DeleteWorkspaceRequest) (*WorkspaceResponse, error) {
+func (c *Client) DeleteWorkspace(req *DeleteWorkspaceRequest) (*WorkspaceResponse, error) {
 	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
 
-	payload, err := json.Marshal(req)
+	resp, err := Delete[WorkspaceResponse](c, path)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := client.update(path, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	res := &WorkspaceResponse{}
-	err = json.Unmarshal(body, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return resp, nil
 }

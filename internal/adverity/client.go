@@ -5,12 +5,14 @@ package adverity
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -45,13 +47,13 @@ func NewClient(instanceUrl, authToken *string) (*Client, error) {
 	return &c, nil
 }
 
-func (client *Client) create(path string, payload *bytes.Reader) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodPost, client.Endpoint.String()+path, io.NopCloser(payload))
-	if err != nil {
-		return nil, err
-	}
+// buildURL constructs a full URL for a given path.
+func (c *Client) buildURL(path string) string {
+	return strings.TrimRight(c.Endpoint.String(), "/") + "/" + strings.TrimLeft(path, "/")
+}
 
-	res, err := client.doRequest(req, nil)
+func (c *Client) create(path string, payload io.Reader) ([]byte, error) {
+	res, err := c.doRequest(http.MethodPost, path, payload, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,13 +61,8 @@ func (client *Client) create(path string, payload *bytes.Reader) ([]byte, error)
 	return res, nil
 }
 
-func (client *Client) read(path string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, client.Endpoint.String()+path, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := client.doRequest(req, nil)
+func (c *Client) read(path string) ([]byte, error) {
+	res, err := c.doRequest(http.MethodGet, path, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +70,8 @@ func (client *Client) read(path string) ([]byte, error) {
 	return res, nil
 }
 
-func (client *Client) update(path string, payload *bytes.Reader) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodPatch, client.Endpoint.String()+path, io.NopCloser(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := client.doRequest(req, nil)
+func (c *Client) update(path string, payload io.Reader) ([]byte, error) {
+	res, err := c.doRequest(http.MethodPatch, path, payload, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +79,8 @@ func (client *Client) update(path string, payload *bytes.Reader) ([]byte, error)
 	return res, nil
 }
 
-func (client *Client) delete(path string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodDelete, client.Endpoint.String()+path, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := client.doRequest(req, nil)
+func (c *Client) delete(path string) ([]byte, error) {
+	res, err := c.doRequest(http.MethodDelete, path, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -101,30 +88,117 @@ func (client *Client) delete(path string) ([]byte, error) {
 	return res, nil
 }
 
-func (client *Client) doRequest(req *http.Request, authToken *string) ([]byte, error) {
-	token := client.Token
+func (c *Client) doRequest(method, path string, payload io.Reader, authToken *string) ([]byte, error) {
+	token := c.Token
 
 	if authToken != nil {
 		token = *authToken
 	}
 
+	req, err := http.NewRequest(method, c.buildURL(path), payload)
+	if err != nil {
+		return nil, err
+	}
+
+	allowedMethods := []string{http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete}
+	if !slices.Contains(allowedMethods, method) {
+		return nil, fmt.Errorf("unsupported method: %s, allowed: %v", method, allowedMethods)
+	}
+
 	req.Header.Set("Authorization", fmt.Sprintf("Token %s", token))
-	req.Header.Add("Content-Type", "application/json")
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
-	res, err := client.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	if !slices.Contains([]int{http.StatusOK, http.StatusCreated, http.StatusAccepted}, res.StatusCode) {
-		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, body)
+	expectedStatusCodes := []int{http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNoContent}
+	if !slices.Contains(expectedStatusCodes, resp.StatusCode) {
+		return nil, fmt.Errorf("status: %d, body: %s, expected: %v", resp.StatusCode, body, expectedStatusCodes)
 	}
 
 	return body, nil
+}
+
+func Create[ReqT any, RespT any](c *Client, path string, resource *ReqT) (*RespT, error) {
+	payload, err := json.Marshal(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.create(path, bytes.NewReader(payload))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(RespT)
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func Read[RespT any](c *Client, path string) (*RespT, error) {
+	body, err := c.read(path)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(RespT)
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func Update[ReqT any, RespT any](c *Client, path string, resource *ReqT) (*RespT, error) {
+	payload, err := json.Marshal(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.update(path, bytes.NewReader(payload))
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(RespT)
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func Delete[RespT any](c *Client, path string) (*RespT, error) {
+	body, err := c.delete(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(body) == 0 {
+		return nil, nil
+	}
+
+	resp := new(RespT)
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
