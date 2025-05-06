@@ -55,9 +55,10 @@ type WorkspaceResponse struct {
 }
 
 func (c *Client) CreateWorkspace(req *CreateWorkspaceRequest) (*WorkspaceResponse, error) {
-	path, _ := url.JoinPath("stacks", "/")
+	r, _ := url.JoinPath("stacks", "/")
+	p, _ := url.Parse(r)
 
-	resp, err := Create[CreateWorkspaceRequest, WorkspaceResponse](c, path, req)
+	resp, err := Create[CreateWorkspaceRequest, WorkspaceResponse](c, p, req, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -66,9 +67,10 @@ func (c *Client) CreateWorkspace(req *CreateWorkspaceRequest) (*WorkspaceRespons
 }
 
 func (c *Client) ReadWorkspace(req *ReadWorkspaceRequest) (*WorkspaceResponse, error) {
-	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	p, _ := url.Parse(r)
 
-	resp, err := Read[WorkspaceResponse](c, path)
+	resp, err := Read[WorkspaceResponse](c, p, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +79,10 @@ func (c *Client) ReadWorkspace(req *ReadWorkspaceRequest) (*WorkspaceResponse, e
 }
 
 func (c *Client) UpdateWorkspace(req *UpdateWorkspaceRequest) (*WorkspaceResponse, error) {
-	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	p, _ := url.Parse(r)
 
-	resp, err := Update[UpdateWorkspaceRequest, WorkspaceResponse](c, path, req)
+	resp, err := Update[UpdateWorkspaceRequest, WorkspaceResponse](c, p, req, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,9 +91,10 @@ func (c *Client) UpdateWorkspace(req *UpdateWorkspaceRequest) (*WorkspaceRespons
 }
 
 func (c *Client) DeleteWorkspace(req *DeleteWorkspaceRequest) (*WorkspaceResponse, error) {
-	path, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+	p, _ := url.Parse(r)
 
-	resp, err := Delete[WorkspaceResponse](c, path)
+	resp, err := Delete[WorkspaceResponse](c, p, nil)
 	if err != nil {
 		return nil, err
 	}
