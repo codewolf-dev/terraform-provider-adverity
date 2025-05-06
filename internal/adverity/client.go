@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"slices"
-	"strings"
 	"time"
 )
 
@@ -25,19 +25,20 @@ type Client struct {
 
 // NewClient -
 func NewClient(instanceUrl, authToken *string) (*Client, error) {
-	baseUrl := *instanceUrl
-	restPath := "/api/"
-
-	apiEndpoint, err := url.ParseRequestURI(baseUrl + restPath)
+	baseUrl, err := url.Parse(*instanceUrl)
 	if err != nil {
 		return nil, err
 	}
+
+	restPath := "api"
+	apiEndpoint := baseUrl.JoinPath(restPath, "/") //  Needed to make buildURL work properly (see https://datatracker.ietf.org/doc/html/rfc3986#section-5.2.3)
 
 	jar, err := cookiejar.New(&cookiejar.Options{})
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("Building API client for %s", apiEndpoint.String())
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 30 * time.Second, Jar: jar},
 		Endpoint:   apiEndpoint,
@@ -48,68 +49,61 @@ func NewClient(instanceUrl, authToken *string) (*Client, error) {
 }
 
 // buildURL constructs a full URL for a given path.
-func (c *Client) buildURL(path string) string {
-	return strings.TrimRight(c.Endpoint.String(), "/") + "/" + strings.TrimLeft(path, "/")
+func (c *Client) buildURL(path *url.URL) *url.URL {
+	return c.Endpoint.ResolveReference(path)
 }
 
-func (c *Client) create(path string, payload io.Reader) ([]byte, error) {
-	res, err := c.doRequest(http.MethodPost, path, payload, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+func (c *Client) create(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodPost, path, payload, query, nil)
 }
 
-func (c *Client) read(path string) ([]byte, error) {
-	res, err := c.doRequest(http.MethodGet, path, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+func (c *Client) read(path *url.URL, query *url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodGet, path, nil, query, nil)
 }
 
-func (c *Client) update(path string, payload io.Reader) ([]byte, error) {
-	res, err := c.doRequest(http.MethodPatch, path, payload, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+func (c *Client) update(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodPatch, path, payload, query, nil)
 }
 
-func (c *Client) delete(path string) ([]byte, error) {
-	res, err := c.doRequest(http.MethodDelete, path, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+func (c *Client) delete(path *url.URL, query *url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodDelete, path, nil, query, nil)
 }
 
-func (c *Client) doRequest(method, path string, payload io.Reader, authToken *string) ([]byte, error) {
+func (c *Client) doRequest(method string, path *url.URL, payload io.Reader, query *url.Values, authToken *string) ([]byte, error) {
 	token := c.Token
 
 	if authToken != nil {
 		token = *authToken
 	}
 
-	req, err := http.NewRequest(method, c.buildURL(path), payload)
+	// Build the resource URL
+	u := c.buildURL(path)
+
+	// Add query parameters to the URL
+	if query != nil {
+		u.RawQuery = query.Encode()
+	}
+
+	// Create the request
+	req, err := http.NewRequest(method, u.String(), payload)
 	if err != nil {
 		return nil, err
 	}
 
+	// Check allowed methods
 	allowedMethods := []string{http.MethodOptions, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete}
 	if !slices.Contains(allowedMethods, method) {
 		return nil, fmt.Errorf("unsupported method: %s, allowed: %v", method, allowedMethods)
 	}
 
+	// Add headers (e.g., auth token)
 	req.Header.Set("Authorization", fmt.Sprintf("Token %s", token))
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
+	// Execute the request
+	log.Printf("%s %s", method, req.URL.String())
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -121,6 +115,7 @@ func (c *Client) doRequest(method, path string, payload io.Reader, authToken *st
 		return nil, err
 	}
 
+	// Handle HTTP errors
 	expectedStatusCodes := []int{http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNoContent}
 	if !slices.Contains(expectedStatusCodes, resp.StatusCode) {
 		return nil, fmt.Errorf("status: %d, body: %s, expected: %v", resp.StatusCode, body, expectedStatusCodes)
@@ -129,63 +124,34 @@ func (c *Client) doRequest(method, path string, payload io.Reader, authToken *st
 	return body, nil
 }
 
-func Create[ReqT any, RespT any](c *Client, path string, resource *ReqT) (*RespT, error) {
-	payload, err := json.Marshal(resource)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := c.create(path, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	resp := new(RespT)
-	err = json.Unmarshal(body, resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+func Create[ReqT any, RespT any](c *Client, path *url.URL, resource *ReqT, query *url.Values) (*RespT, error) {
+	return execute[ReqT, RespT](c, http.MethodPost, path, resource, query)
 }
 
-func Read[RespT any](c *Client, path string) (*RespT, error) {
-	body, err := c.read(path)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := new(RespT)
-	err = json.Unmarshal(body, resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+func Read[RespT any](c *Client, path *url.URL, query *url.Values) (*RespT, error) {
+	return execute[any, RespT](c, http.MethodGet, path, nil, query)
 }
 
-func Update[ReqT any, RespT any](c *Client, path string, resource *ReqT) (*RespT, error) {
-	payload, err := json.Marshal(resource)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := c.update(path, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-
-	resp := new(RespT)
-	err = json.Unmarshal(body, resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+func Update[ReqT any, RespT any](c *Client, path *url.URL, resource *ReqT, query *url.Values) (*RespT, error) {
+	return execute[ReqT, RespT](c, http.MethodPatch, path, resource, query)
 }
 
-func Delete[RespT any](c *Client, path string) (*RespT, error) {
-	body, err := c.delete(path)
+func Delete[RespT any](c *Client, path *url.URL, query *url.Values) (*RespT, error) {
+	return execute[any, RespT](c, http.MethodDelete, path, nil, query)
+}
+
+func execute[ReqT any, RespT any](c *Client, method string, path *url.URL, resource *ReqT, query *url.Values) (*RespT, error) {
+	var r io.Reader
+
+	if resource != nil {
+		payload, err := json.Marshal(resource)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal %T: %w", *resource, err)
+		}
+		r = bytes.NewReader(payload)
+	}
+
+	body, err := c.doRequest(method, path, r, query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +163,7 @@ func Delete[RespT any](c *Client, path string) (*RespT, error) {
 	resp := new(RespT)
 	err = json.Unmarshal(body, resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal into %T: %w", *resp, err)
 	}
 
 	return resp, nil
