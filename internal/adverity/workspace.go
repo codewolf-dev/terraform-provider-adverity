@@ -4,25 +4,12 @@ import (
 	"net/url"
 )
 
-type CreateWorkspaceRequest struct {
-	DatalakeID int    `json:"datalake_id,omitempty" url:"datalake_id,omitempty"`
-	ParentID   int    `json:"parent_id,omitempty"   url:"parent_id,omitempty"`
-	Name       string `json:"name,omitempty"        url:"name,omitempty"`
-}
-
-type ReadWorkspaceRequest struct {
-	StackSlug string `json:"stack_slug,omitempty" url:"stack_slug,omitempty"`
-}
-
-type UpdateWorkspaceRequest struct {
-	StackSlug  string `json:"stack_slug,omitempty"  url:"stack_slug,omitempty"`
-	DatalakeID int    `json:"datalake_id,omitempty" url:"datalake_id,omitempty"`
-	ParentID   int    `json:"parent_id,omitempty"   url:"parent_id,omitempty"`
-	Name       string `json:"name,omitempty"        url:"name,omitempty"`
-}
-
-type DeleteWorkspaceRequest struct {
-	StackSlug string `json:"stack_slug,omitempty" url:"stack_slug,omitempty"`
+type WorkspaceConfig struct {
+	DatalakeID         int    `json:"datalake_id,omitempty"`
+	Name               string `json:"name,omitempty"`
+	ParentID           int    `json:"parent_id,omitempty"`
+	Destination        int    `json:"destination,omitempty"`
+	ManageExtractNames bool   `json:"default_manage_extract_names,omitempty"`
 }
 
 type WorkspaceResponse struct {
@@ -49,55 +36,35 @@ type WorkspaceResponse struct {
 		IsDatastreamManager bool `json:"isDatastreamManager"`
 		IsViewer            bool `json:"isViewer"`
 	} `json:"permissions"`
-	DefaultManageExtractNames bool   `json:"default_manage_extract_names"`
-	Updated                   string `json:"updated"`
-	Created                   string `json:"created"`
+	ManageExtractNames bool   `json:"default_manage_extract_names"`
+	Updated            string `json:"updated"`
+	Created            string `json:"created"`
 }
 
-func (c *Client) CreateWorkspace(req *CreateWorkspaceRequest) (*WorkspaceResponse, error) {
+func (c *Client) CreateWorkspace(req *WorkspaceConfig) (*WorkspaceResponse, error) {
 	r, _ := url.JoinPath("stacks", "/")
 	p, _ := url.Parse(r)
 
-	resp, err := Create[CreateWorkspaceRequest, WorkspaceResponse](c, p, req, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return Create[WorkspaceConfig, WorkspaceResponse](c, p, req, nil)
 }
 
-func (c *Client) ReadWorkspace(req *ReadWorkspaceRequest) (*WorkspaceResponse, error) {
-	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+func (c *Client) ReadWorkspace(stackSlug string) (*WorkspaceResponse, error) {
+	r, _ := url.JoinPath("stacks", stackSlug, "/")
 	p, _ := url.Parse(r)
 
-	resp, err := Read[WorkspaceResponse](c, p, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return Read[WorkspaceResponse](c, p, nil)
 }
 
-func (c *Client) UpdateWorkspace(req *UpdateWorkspaceRequest) (*WorkspaceResponse, error) {
-	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+func (c *Client) UpdateWorkspace(stackSlug string, req *WorkspaceConfig) (*WorkspaceResponse, error) {
+	r, _ := url.JoinPath("stacks", stackSlug, "/")
 	p, _ := url.Parse(r)
 
-	resp, err := Update[UpdateWorkspaceRequest, WorkspaceResponse](c, p, req, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return Update[WorkspaceConfig, WorkspaceResponse](c, p, req, nil)
 }
 
-func (c *Client) DeleteWorkspace(req *DeleteWorkspaceRequest) (*WorkspaceResponse, error) {
-	r, _ := url.JoinPath("stacks", req.StackSlug, "/")
+func (c *Client) DeleteWorkspace(stackSlug string) (*WorkspaceResponse, error) {
+	r, _ := url.JoinPath("stacks", stackSlug, "/")
 	p, _ := url.Parse(r)
 
-	resp, err := Delete[WorkspaceResponse](c, p, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return Delete[WorkspaceResponse](c, p, nil)
 }
