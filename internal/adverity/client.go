@@ -103,7 +103,6 @@ func (c *Client) doRequest(method string, path *url.URL, payload io.Reader, quer
 	}
 
 	// Execute the request
-	log.Printf("%s %s", method, req.URL.String())
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -141,6 +140,8 @@ func Delete[RespT any](c *Client, path *url.URL, query *url.Values) (*RespT, err
 }
 
 func execute[ReqT any, RespT any](c *Client, method string, path *url.URL, resource *ReqT, query *url.Values) (*RespT, error) {
+	log.Printf("%s %s", method, path.String())
+
 	var r io.Reader
 
 	if resource != nil {
@@ -148,6 +149,7 @@ func execute[ReqT any, RespT any](c *Client, method string, path *url.URL, resou
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal %T: %w", *resource, err)
 		}
+		log.Printf("request payload: %s", payload)
 		r = bytes.NewReader(payload)
 	}
 
@@ -165,6 +167,7 @@ func execute[ReqT any, RespT any](c *Client, method string, path *url.URL, resou
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal into %T: %w", *resp, err)
 	}
+	log.Printf("response body: %s", body)
 
 	return resp, nil
 }
