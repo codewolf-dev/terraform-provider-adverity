@@ -18,9 +18,9 @@ import (
 
 // Client -
 type Client struct {
-	HTTPClient *http.Client
-	Endpoint   *url.URL
-	Token      string
+	httpClient *http.Client
+	endpoint   *url.URL
+	token      string
 }
 
 // NewClient -
@@ -40,9 +40,9 @@ func NewClient(instanceUrl, authToken *string) (*Client, error) {
 
 	log.Printf("Building API client for %s", apiEndpoint.String())
 	c := Client{
-		HTTPClient: &http.Client{Timeout: 30 * time.Second, Jar: jar},
-		Endpoint:   apiEndpoint,
-		Token:      *authToken,
+		httpClient: &http.Client{Timeout: 30 * time.Second, Jar: jar},
+		endpoint:   apiEndpoint,
+		token:      *authToken,
 	}
 
 	return &c, nil
@@ -50,7 +50,7 @@ func NewClient(instanceUrl, authToken *string) (*Client, error) {
 
 // buildURL constructs a full URL for a given path.
 func (c *Client) buildURL(path *url.URL) *url.URL {
-	return c.Endpoint.ResolveReference(path)
+	return c.endpoint.ResolveReference(path)
 }
 
 func (c *Client) create(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
@@ -70,7 +70,7 @@ func (c *Client) delete(path *url.URL, query *url.Values) ([]byte, error) {
 }
 
 func (c *Client) doRequest(method string, path *url.URL, payload io.Reader, query *url.Values, authToken *string) ([]byte, error) {
-	token := c.Token
+	token := c.token
 
 	if authToken != nil {
 		token = *authToken
@@ -103,7 +103,7 @@ func (c *Client) doRequest(method string, path *url.URL, payload io.Reader, quer
 	}
 
 	// Execute the request
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
