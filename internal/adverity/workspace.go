@@ -5,11 +5,14 @@ import (
 )
 
 type WorkspaceConfig struct {
-	DatalakeID         int    `json:"datalake_id,omitempty"`
-	Name               string `json:"name,omitempty"`
-	ParentID           int    `json:"parent_id,omitempty"`
-	Destination        int    `json:"destination,omitempty"`
-	ManageExtractNames bool   `json:"default_manage_extract_names,omitempty"`
+	Name       *string      `json:"name,omitempty"`
+	DatalakeID *int64       `json:"datalake_id,omitempty"`
+	ParentID   *int64       `json:"parent_id,omitempty"`
+	Parameters *[]Parameter `json:"-"`
+}
+
+func (c *WorkspaceConfig) MarshalJSON() ([]byte, error) {
+	return FlattenedMarshal(c, *c.Parameters)
 }
 
 type WorkspaceResponse struct {
@@ -20,16 +23,16 @@ type WorkspaceResponse struct {
 	Destination      interface{} `json:"destination"`
 	ExtractsURL      string      `json:"extracts_url"`
 	IssuesURL        string      `json:"issues_url"`
-	ID               int         `json:"id"`
+	ID               int64       `json:"id"`
 	Name             string      `json:"name"`
 	OverviewURL      string      `json:"overview_url"`
 	Parent           string      `json:"parent"`
-	ParentID         int         `json:"parent_id"`
+	ParentID         int64       `json:"parent_id"`
 	Slug             string      `json:"slug"`
 	URL              string      `json:"url"`
 	Counts           struct {
-		Connections int `json:"connections"`
-		Datastreams int `json:"datastreams"`
+		Connections int64 `json:"connections"`
+		Datastreams int64 `json:"datastreams"`
 	} `json:"counts"`
 	Permissions struct {
 		IsCreator           bool `json:"isCreator"`
