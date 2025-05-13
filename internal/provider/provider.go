@@ -6,8 +6,8 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"net/http"
 	"os"
+	"terraform-provider-adverity/internal/adverity"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -141,9 +141,19 @@ func (p *AdverityProvider) Configure(ctx context.Context, req provider.Configure
 
 	tflog.Debug(ctx, "Creating Adverity API client")
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
+	// Create a new Adverity client using the configuration values
+	client, err := adverity.NewClient(&instanceUrl, &authToken)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to create Adverity API client",
+			"An unexpected error occurred when creating the Adverity API client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"Adverity client error: "+err.Error(),
+		)
+		return
+	}
 
+	// Make the Adverity client available during DataSource and Resource type Configure methods.
 	resp.DataSourceData = client
 	resp.ResourceData = client
 
@@ -154,6 +164,7 @@ func (p *AdverityProvider) Configure(ctx context.Context, req provider.Configure
 func (p *AdverityProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewExampleResource,
+		NewWorkspaceResource,
 	}
 }
 
