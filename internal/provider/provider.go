@@ -165,6 +165,7 @@ func (p *AdverityProvider) Resources(ctx context.Context) []func() resource.Reso
 	return []func() resource.Resource{
 		NewExampleResource,
 		NewWorkspaceResource,
+		NewConnectionResource,
 	}
 }
 
