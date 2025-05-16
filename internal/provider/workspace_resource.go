@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"terraform-provider-adverity/internal/adverity"
+	"terraform-provider-adverity/internal/provider/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -16,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -125,8 +124,6 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Workspace create with parameters: %s", plan.Parameters.String()))
-
 	// Generate API request body from plan
 	payload := &adverity.WorkspaceConfig{
 		Name:       plan.Name.ValueStringPointer(),
@@ -135,24 +132,11 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if !plan.Parameters.IsNull() {
-		switch params := plan.Parameters.UnderlyingValue().(type) {
-		case types.Object:
-			var parameters []adverity.Parameter
-			for k, v := range params.Attributes() {
-				parameter := adverity.Parameter{Key: k, Value: v}
-				parameters = append(parameters, parameter)
-			}
-			payload.Parameters = &parameters
-		default:
-			resp.Diagnostics.AddAttributeError(
-				path.Root("parameters"),
-				"Parameters must be an object",
-				"Parameters must be an object, attributes may by any primitive type, list or object. Type received: "+params.Type(ctx).String(),
-			)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+		parameters := utils.ExpandParameters(plan.Parameters.UnderlyingValue(), path.Root("parameters"), &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
 		}
+		payload.Parameters = &parameters
 	}
 
 	// Create new workspace
@@ -165,11 +149,9 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	// Map response body to schema and populate Computed attribute values
+	// Map response body to schema and populate computed attribute values
 	plan.ID = types.Int64Value(workspace.ID)
-	plan.Name = types.StringValue(workspace.Name)
 	plan.Slug = types.StringValue(workspace.Slug)
-	plan.ParentID = types.Int64Value(workspace.ParentID)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set state to fully populated data
@@ -200,8 +182,7 @@ func (r *workspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// Overwrite state with refreshed state
-	state.ID = types.Int64Value(workspace.ID)
+	// Overwrite state with refreshed attributes
 	state.Name = types.StringValue(workspace.Name)
 	state.Slug = types.StringValue(workspace.Slug)
 	state.ParentID = types.Int64Value(workspace.ParentID)
@@ -228,24 +209,11 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if !plan.Parameters.IsNull() {
-		switch params := plan.Parameters.UnderlyingValue().(type) {
-		case types.Object:
-			var parameters []adverity.Parameter
-			for k, v := range params.Attributes() {
-				parameter := adverity.Parameter{Key: k, Value: v}
-				parameters = append(parameters, parameter)
-			}
-			payload.Parameters = &parameters
-		default:
-			resp.Diagnostics.AddAttributeError(
-				path.Root("parameters"),
-				"Parameters must be an object",
-				"Parameters must be an object, attributes may by any primitive type, list or object. Type received: "+params.Type(ctx).String(),
-			)
-			if resp.Diagnostics.HasError() {
-				return
-			}
+		parameters := utils.ExpandParameters(plan.Parameters.UnderlyingValue(), path.Root("parameters"), &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
 		}
+		payload.Parameters = &parameters
 	}
 
 	// Retrieve slug from state
@@ -266,10 +234,8 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Update resource state with updated items and timestamp
-	plan.Name = types.StringValue(workspace.Name)
+	// Update resource state with updated attributes and timestamp
 	plan.Slug = types.StringValue(workspace.Slug)
-	plan.ParentID = types.Int64Value(workspace.ParentID)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
