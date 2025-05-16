@@ -12,7 +12,7 @@ type WorkspaceConfig struct {
 }
 
 func (c *WorkspaceConfig) MarshalJSON() ([]byte, error) {
-	return FlattenedMarshal(c, *c.Parameters)
+	return FlattenedMarshal(c, c.Parameters)
 }
 
 type WorkspaceResponse struct {

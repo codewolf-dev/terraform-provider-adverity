@@ -11,7 +11,7 @@ type Parameter struct {
 }
 
 // FlattenedMarshal flattens a slice of Parameter into the base struct.
-func FlattenedMarshal(base interface{}, params []Parameter) ([]byte, error) {
+func FlattenedMarshal(base interface{}, params *[]Parameter) ([]byte, error) {
 	// Use reflection to get the underlying value
 	v := reflect.ValueOf(base)
 
@@ -37,8 +37,10 @@ func FlattenedMarshal(base interface{}, params []Parameter) ([]byte, error) {
 	}
 
 	// Add parameters to map
-	for _, p := range params {
-		merged[p.Key] = p.Value
+	if params != nil {
+		for _, p := range *params {
+			merged[p.Key] = p.Value
+		}
 	}
 
 	return json.Marshal(merged)
