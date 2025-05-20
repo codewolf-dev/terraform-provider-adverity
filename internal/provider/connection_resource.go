@@ -47,6 +47,13 @@ type connectionResourceModel struct {
 	LastUpdated      types.String  `tfsdk:"last_updated"`
 }
 
+func (r *connectionResource) refreshState(connection *adverity.ConnectionResponse, state *connectionResourceModel) {
+	state.ID = types.Int64Value(connection.ID)
+	state.Name = types.StringValue(connection.Name)
+	state.StackID = types.Int64Value(connection.StackID)
+	state.IsAuthorized = types.BoolValue(connection.IsAuthorized)
+}
+
 // Configure adds the provider configured client to the resource.
 func (r *connectionResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
@@ -149,8 +156,7 @@ func (r *connectionResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Map response body to schema and populate computed attribute values
-	plan.ID = types.Int64Value(connection.ID)
-	plan.IsAuthorized = types.BoolValue(connection.IsAuthorized)
+	r.refreshState(connection, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set state to fully populated data
@@ -182,9 +188,7 @@ func (r *connectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	// Overwrite state with refreshed attributes
-	state.Name = types.StringValue(connection.Name)
-	state.StackID = types.Int64Value(connection.StackID)
-	state.IsAuthorized = types.BoolValue(connection.IsAuthorized)
+	r.refreshState(connection, &state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -225,7 +229,7 @@ func (r *connectionResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Update resource state with updated attributes and timestamp
-	plan.IsAuthorized = types.BoolValue(connection.IsAuthorized)
+	r.refreshState(connection, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)

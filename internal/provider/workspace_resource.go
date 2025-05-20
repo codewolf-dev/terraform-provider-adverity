@@ -47,6 +47,13 @@ type workspaceResourceModel struct {
 	LastUpdated types.String  `tfsdk:"last_updated"`
 }
 
+func (r *workspaceResource) refreshState(workspace *adverity.WorkspaceResponse, state *workspaceResourceModel) {
+	state.ID = types.Int64Value(workspace.ID)
+	state.Name = types.StringValue(workspace.Name)
+	state.Slug = types.StringValue(workspace.Slug)
+	state.ParentID = types.Int64Value(workspace.ParentID)
+}
+
 // Configure adds the provider configured client to the resource.
 func (r *workspaceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
@@ -150,8 +157,7 @@ func (r *workspaceResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Map response body to schema and populate computed attribute values
-	plan.ID = types.Int64Value(workspace.ID)
-	plan.Slug = types.StringValue(workspace.Slug)
+	r.refreshState(workspace, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set state to fully populated data
@@ -183,9 +189,7 @@ func (r *workspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	// Overwrite state with refreshed attributes
-	state.Name = types.StringValue(workspace.Name)
-	state.Slug = types.StringValue(workspace.Slug)
-	state.ParentID = types.Int64Value(workspace.ParentID)
+	r.refreshState(workspace, &state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -235,7 +239,7 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Update resource state with updated attributes and timestamp
-	plan.Slug = types.StringValue(workspace.Slug)
+	r.refreshState(workspace, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
