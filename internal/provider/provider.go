@@ -167,6 +167,7 @@ func (p *AdverityProvider) Resources(ctx context.Context) []func() resource.Reso
 		NewWorkspaceResource,
 		NewConnectionResource,
 		NewDatastreamResource,
+		NewDestinationResource,
 	}
 }
 
