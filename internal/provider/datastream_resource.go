@@ -6,8 +6,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"time"
 
 	"terraform-provider-adverity/internal/adverity"
@@ -16,8 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -56,6 +56,24 @@ type datastreamScheduleModel struct {
 	NotBeforeTime      types.String `tfsdk:"not_before_time"`
 }
 
+//type datastreamScheduleModel struct {
+//	CronPreset         types.String `tfsdk:"cron_preset"`
+//	CronType           types.String `tfsdk:"cron_type"`
+//	CronInterval       types.Int64  `tfsdk:"cron_interval"`
+//	CronIntervalStart  types.Int64  `tfsdk:"cron_interval_start"`
+//	CronStartOfDay     types.String `tfsdk:"cron_start_of_day"`
+//	TimeRangePreset    types.Int64  `tfsdk:"time_range_preset"`
+//	DeltaType          types.Int64  `tfsdk:"delta_type"`
+//	DeltaInterval      types.Int64  `tfsdk:"delta_interval"`
+//	DeltaIntervalStart types.Int64  `tfsdk:"delta_interval_start"`
+//	DeltaStartOfDay    types.String `tfsdk:"delta_start_of_day"`
+//	FixedStart         types.String `tfsdk:"fixed_start"`
+//	FixedEnd           types.String `tfsdk:"fixed_end"`
+//	OffsetDays         types.Int64  `tfsdk:"offset_days"`
+//	NotBeforeDate      types.String `tfsdk:"not_before_date"`
+//	NotBeforeTime      types.String `tfsdk:"not_before_time"`
+//}
+
 // datastreamResourceModel maps the resource schema data.
 type datastreamResourceModel struct {
 	DatastreamTypeId    types.Int64               `tfsdk:"datastream_type_id"`
@@ -93,21 +111,21 @@ func (r *datastreamResource) refreshState(datastream *adverity.DatastreamRespons
 	var schedules []datastreamScheduleModel
 	for _, schedule := range datastream.Schedules {
 		schedules = append(schedules, datastreamScheduleModel{
-			CronPreset:         types.StringValue(schedule.CronPreset),
-			CronType:           types.StringValue(schedule.CronType),
-			CronInterval:       types.Int64Value(schedule.CronInterval),
-			CronIntervalStart:  types.Int64Value(schedule.CronIntervalStart),
-			CronStartOfDay:     types.StringValue(schedule.CronStartOfDay),
-			TimeRangePreset:    types.Int64Value(schedule.TimeRangePreset),
-			DeltaType:          types.Int64Value(schedule.DeltaType),
-			DeltaInterval:      types.Int64Value(schedule.DeltaInterval),
-			DeltaIntervalStart: types.Int64Value(schedule.DeltaIntervalStart),
-			DeltaStartOfDay:    types.StringValue(schedule.DeltaStartOfDay),
-			FixedStart:         types.StringValue(schedule.FixedStart),
-			FixedEnd:           types.StringValue(schedule.FixedEnd),
-			OffsetDays:         types.Int64Value(schedule.OffsetDays),
-			NotBeforeDate:      types.StringValue(schedule.NotBeforeDate),
-			NotBeforeTime:      types.StringValue(schedule.NotBeforeTime),
+			CronPreset:         types.StringPointerValue(schedule.CronPreset),
+			CronType:           types.StringPointerValue(schedule.CronType),
+			CronInterval:       types.Int64PointerValue(schedule.CronInterval),
+			CronIntervalStart:  types.Int64PointerValue(schedule.CronIntervalStart),
+			CronStartOfDay:     types.StringPointerValue(schedule.CronStartOfDay),
+			TimeRangePreset:    types.Int64PointerValue(schedule.TimeRangePreset),
+			DeltaType:          types.Int64PointerValue(schedule.DeltaType),
+			DeltaInterval:      types.Int64PointerValue(schedule.DeltaInterval),
+			DeltaIntervalStart: types.Int64PointerValue(schedule.DeltaIntervalStart),
+			DeltaStartOfDay:    types.StringPointerValue(schedule.DeltaStartOfDay),
+			FixedStart:         types.StringPointerValue(schedule.FixedStart),
+			FixedEnd:           types.StringPointerValue(schedule.FixedEnd),
+			OffsetDays:         types.Int64PointerValue(schedule.OffsetDays),
+			NotBeforeDate:      types.StringPointerValue(schedule.NotBeforeDate),
+			NotBeforeTime:      types.StringPointerValue(schedule.NotBeforeTime),
 		})
 	}
 	state.Schedules = schedules
@@ -413,9 +431,9 @@ func (r *datastreamResource) Create(ctx context.Context, req resource.CreateRequ
 		payload.Parameters = &parameters
 	}
 
-	var schedules []adverity.ScheduleConfig
+	var schedules []adverity.Schedule
 	for _, schedule := range plan.Schedules {
-		config := adverity.ScheduleConfig{}
+		config := adverity.Schedule{}
 		if !schedule.CronPreset.IsUnknown() {
 			config.CronPreset = schedule.CronPreset.ValueStringPointer()
 		}
@@ -559,74 +577,76 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 		Enabled: plan.Enabled.ValueBoolPointer(),
 	}
 
-	var schedules []adverity.ScheduleConfig
+	var schedules []adverity.Schedule
 	for _, schedule := range plan.Schedules {
-		config := adverity.ScheduleConfig{}
-		if !schedule.CronPreset.IsUnknown() {
+		config := adverity.Schedule{}
+		if !(schedule.CronPreset.IsUnknown() || schedule.CronPreset.IsNull()) {
 			config.CronPreset = schedule.CronPreset.ValueStringPointer()
 		}
-		if !schedule.CronType.IsUnknown() {
+		if !(schedule.CronType.IsUnknown() || schedule.CronType.IsNull()) {
 			config.CronType = schedule.CronType.ValueStringPointer()
 		}
-		if !schedule.CronInterval.IsUnknown() {
+		if !(schedule.CronInterval.IsUnknown() || schedule.CronInterval.IsNull()) {
 			config.CronInterval = schedule.CronInterval.ValueInt64Pointer()
 		}
-		if !schedule.CronIntervalStart.IsUnknown() {
+		if !(schedule.CronIntervalStart.IsUnknown() || schedule.CronIntervalStart.IsNull()) {
 			config.CronIntervalStart = schedule.CronIntervalStart.ValueInt64Pointer()
 		}
-		if !schedule.CronStartOfDay.IsUnknown() {
+		if !(schedule.CronStartOfDay.IsUnknown() || schedule.CronStartOfDay.IsNull()) {
 			config.CronStartOfDay = schedule.CronStartOfDay.ValueStringPointer()
 		}
-		if !schedule.TimeRangePreset.IsUnknown() {
+		if !(schedule.TimeRangePreset.IsUnknown() || schedule.TimeRangePreset.IsNull()) {
 			config.TimeRangePreset = schedule.TimeRangePreset.ValueInt64Pointer()
 		}
-		if !schedule.DeltaType.IsUnknown() {
+		if !(schedule.DeltaType.IsUnknown() || schedule.DeltaType.IsNull()) {
 			config.DeltaType = schedule.DeltaType.ValueInt64Pointer()
 		}
-		if !schedule.DeltaInterval.IsUnknown() {
+		if !(schedule.DeltaInterval.IsUnknown() || schedule.DeltaInterval.IsNull()) {
 			config.DeltaInterval = schedule.DeltaInterval.ValueInt64Pointer()
 		}
-		if !schedule.DeltaIntervalStart.IsUnknown() {
+		if !(schedule.DeltaIntervalStart.IsUnknown() || schedule.DeltaIntervalStart.IsNull()) {
 			config.DeltaIntervalStart = schedule.DeltaIntervalStart.ValueInt64Pointer()
 		}
-		if !schedule.DeltaStartOfDay.IsUnknown() {
+		if !(schedule.DeltaStartOfDay.IsUnknown() || schedule.DeltaStartOfDay.IsNull()) {
 			config.DeltaStartOfDay = schedule.DeltaStartOfDay.ValueStringPointer()
 		}
-		if !schedule.FixedStart.IsUnknown() {
+		if !(schedule.FixedStart.IsUnknown() || schedule.FixedStart.IsNull()) {
 			config.FixedStart = schedule.FixedStart.ValueStringPointer()
 		}
-		if !schedule.FixedEnd.IsUnknown() {
+		if !(schedule.FixedEnd.IsUnknown() || schedule.FixedEnd.IsNull()) {
 			config.FixedEnd = schedule.FixedEnd.ValueStringPointer()
 		}
-		if !schedule.OffsetDays.IsUnknown() {
+		if !(schedule.OffsetDays.IsUnknown() || schedule.OffsetDays.IsNull()) {
 			config.OffsetDays = schedule.OffsetDays.ValueInt64Pointer()
 		}
-		if !schedule.NotBeforeDate.IsUnknown() {
+		if !(schedule.NotBeforeDate.IsUnknown() || schedule.NotBeforeDate.IsNull()) {
 			config.NotBeforeDate = schedule.NotBeforeDate.ValueStringPointer()
 		}
-		if !schedule.NotBeforeTime.IsUnknown() {
+		if !(schedule.NotBeforeTime.IsUnknown() || schedule.NotBeforeTime.IsNull()) {
 			config.NotBeforeTime = schedule.NotBeforeTime.ValueStringPointer()
 		}
 		schedules = append(schedules, config)
 	}
 	schedulePayload.Schedules = &schedules
 
+	// Update existing datastream schedule
+	// We ignore the returned body since not all fields are populated by this endpoint for a state refresh (e.g. stack_id)
+	_, err := r.client.UpdateDatastreamSchedule(int(plan.ID.ValueInt64()), schedulePayload)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Adverity datastream schedule",
+			"Could not update datastream schedule, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
 	// Update existing datastream
+	// Schedule changes from the previous update request are reflected in this response
 	datastream, err := r.client.UpdateDatastream(int(plan.DatastreamTypeId.ValueInt64()), int(plan.ID.ValueInt64()), payload)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Adverity datastream",
 			"Could not update datastream, unexpected error: "+err.Error(),
-		)
-		return
-	}
-
-	// Update existing datastream schedule
-	datastream, err = r.client.UpdateDatastreamSchedule(int(plan.ID.ValueInt64()), schedulePayload)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Updating Adverity datastream schedule",
-			"Could not update datastream schedule, unexpected error: "+err.Error(),
 		)
 		return
 	}
