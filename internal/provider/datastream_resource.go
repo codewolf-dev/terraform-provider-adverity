@@ -56,24 +56,6 @@ type datastreamScheduleModel struct {
 	NotBeforeTime      types.String `tfsdk:"not_before_time"`
 }
 
-//type datastreamScheduleModel struct {
-//	CronPreset         types.String `tfsdk:"cron_preset"`
-//	CronType           types.String `tfsdk:"cron_type"`
-//	CronInterval       types.Int64  `tfsdk:"cron_interval"`
-//	CronIntervalStart  types.Int64  `tfsdk:"cron_interval_start"`
-//	CronStartOfDay     types.String `tfsdk:"cron_start_of_day"`
-//	TimeRangePreset    types.Int64  `tfsdk:"time_range_preset"`
-//	DeltaType          types.Int64  `tfsdk:"delta_type"`
-//	DeltaInterval      types.Int64  `tfsdk:"delta_interval"`
-//	DeltaIntervalStart types.Int64  `tfsdk:"delta_interval_start"`
-//	DeltaStartOfDay    types.String `tfsdk:"delta_start_of_day"`
-//	FixedStart         types.String `tfsdk:"fixed_start"`
-//	FixedEnd           types.String `tfsdk:"fixed_end"`
-//	OffsetDays         types.Int64  `tfsdk:"offset_days"`
-//	NotBeforeDate      types.String `tfsdk:"not_before_date"`
-//	NotBeforeTime      types.String `tfsdk:"not_before_time"`
-//}
-
 // datastreamResourceModel maps the resource schema data.
 type datastreamResourceModel struct {
 	DatastreamTypeId    types.Int64               `tfsdk:"datastream_type_id"`
