@@ -5,7 +5,7 @@ import (
 )
 
 type DatastreamType struct {
-	ID              int      `json:"id"`
+	ID              int64    `json:"id"`
 	Name            string   `json:"name"`
 	Slug            string   `json:"slug"`
 	URL             string   `json:"url"`
@@ -18,24 +18,24 @@ type DatastreamType struct {
 	ConnectionTypes []string `json:"connection_types"`
 }
 
-type DatastreamTypeQueryResponse struct {
-	Count    int              `json:"count"`
+type datastreamTypeQueryResponse struct {
+	Count    int64            `json:"count"`
 	Next     string           `json:"next"`
 	Previous string           `json:"previous"`
 	Results  []DatastreamType `json:"results"`
 }
 
-func (c *Client) QueryDatastreamTypes(searchTerm string) (*DatastreamTypeQueryResponse, error) {
+func (c *Client) QueryDatastreamTypes(searchTerm string) ([]DatastreamType, error) {
 	r, _ := url.JoinPath("datastream-types", "/")
 	p, _ := url.Parse(r)
 
 	q := &url.Values{}
 	q.Add("search", searchTerm)
 
-	resp, err := Read[DatastreamTypeQueryResponse](c, p, q)
+	resp, err := Read[datastreamTypeQueryResponse](c, p, q)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp, nil
+	return resp.Results, nil
 }
