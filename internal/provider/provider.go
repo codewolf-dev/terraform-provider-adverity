@@ -176,6 +176,9 @@ func (p *AdverityProvider) Resources(ctx context.Context) []func() resource.Reso
 func (p *AdverityProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewExampleDataSource,
+		NewConnectionTypeDataSource,
+		NewDatastreamTypeDataSource,
+		NewDestinationTypeDataSource,
 	}
 }
 
