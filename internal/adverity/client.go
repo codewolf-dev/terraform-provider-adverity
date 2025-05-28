@@ -16,14 +16,14 @@ import (
 	"time"
 )
 
-// Client -
+// Client holds http.Client, endpoint and token.
 type Client struct {
 	httpClient *http.Client
 	endpoint   *url.URL
 	token      string
 }
 
-// NewClient -
+// NewClient constructs a new Client with given endpoint and token.
 func NewClient(instanceUrl, authToken *string) (*Client, error) {
 	baseUrl, err := url.Parse(*instanceUrl)
 	if err != nil {
@@ -53,22 +53,23 @@ func (c *Client) buildURL(path *url.URL) *url.URL {
 	return c.endpoint.ResolveReference(path)
 }
 
-func (c *Client) create(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
+func (c *Client) Create(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
 	return c.doRequest(http.MethodPost, path, payload, query, nil)
 }
 
-func (c *Client) read(path *url.URL, query *url.Values) ([]byte, error) {
+func (c *Client) Read(path *url.URL, query *url.Values) ([]byte, error) {
 	return c.doRequest(http.MethodGet, path, nil, query, nil)
 }
 
-func (c *Client) update(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
+func (c *Client) Update(path *url.URL, payload io.Reader, query *url.Values) ([]byte, error) {
 	return c.doRequest(http.MethodPatch, path, payload, query, nil)
 }
 
-func (c *Client) delete(path *url.URL, query *url.Values) ([]byte, error) {
+func (c *Client) Delete(path *url.URL, query *url.Values) ([]byte, error) {
 	return c.doRequest(http.MethodDelete, path, nil, query, nil)
 }
 
+//nolint:unparam // authToken may be used to overwrite a token set in Client
 func (c *Client) doRequest(method string, path *url.URL, payload io.Reader, query *url.Values, authToken *string) ([]byte, error) {
 	token := c.token
 

@@ -562,49 +562,49 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 	var schedules []adverity.Schedule
 	for _, schedule := range plan.Schedules {
 		config := adverity.Schedule{}
-		if !(schedule.CronPreset.IsUnknown() || schedule.CronPreset.IsNull()) {
+		if !schedule.CronPreset.IsUnknown() && !schedule.CronPreset.IsNull() {
 			config.CronPreset = schedule.CronPreset.ValueStringPointer()
 		}
-		if !(schedule.CronType.IsUnknown() || schedule.CronType.IsNull()) {
+		if !schedule.CronType.IsUnknown() && !schedule.CronType.IsNull() {
 			config.CronType = schedule.CronType.ValueStringPointer()
 		}
-		if !(schedule.CronInterval.IsUnknown() || schedule.CronInterval.IsNull()) {
+		if !schedule.CronInterval.IsUnknown() && !schedule.CronInterval.IsNull() {
 			config.CronInterval = schedule.CronInterval.ValueInt64Pointer()
 		}
-		if !(schedule.CronIntervalStart.IsUnknown() || schedule.CronIntervalStart.IsNull()) {
+		if !schedule.CronIntervalStart.IsUnknown() && !schedule.CronIntervalStart.IsNull() {
 			config.CronIntervalStart = schedule.CronIntervalStart.ValueInt64Pointer()
 		}
-		if !(schedule.CronStartOfDay.IsUnknown() || schedule.CronStartOfDay.IsNull()) {
+		if !schedule.CronStartOfDay.IsUnknown() && !schedule.CronStartOfDay.IsNull() {
 			config.CronStartOfDay = schedule.CronStartOfDay.ValueStringPointer()
 		}
-		if !(schedule.TimeRangePreset.IsUnknown() || schedule.TimeRangePreset.IsNull()) {
+		if !schedule.TimeRangePreset.IsUnknown() && !schedule.TimeRangePreset.IsNull() {
 			config.TimeRangePreset = schedule.TimeRangePreset.ValueInt64Pointer()
 		}
-		if !(schedule.DeltaType.IsUnknown() || schedule.DeltaType.IsNull()) {
+		if !schedule.DeltaType.IsUnknown() && !schedule.DeltaType.IsNull() {
 			config.DeltaType = schedule.DeltaType.ValueInt64Pointer()
 		}
-		if !(schedule.DeltaInterval.IsUnknown() || schedule.DeltaInterval.IsNull()) {
+		if !schedule.DeltaInterval.IsUnknown() && !schedule.DeltaInterval.IsNull() {
 			config.DeltaInterval = schedule.DeltaInterval.ValueInt64Pointer()
 		}
-		if !(schedule.DeltaIntervalStart.IsUnknown() || schedule.DeltaIntervalStart.IsNull()) {
+		if !schedule.DeltaIntervalStart.IsUnknown() && !schedule.DeltaIntervalStart.IsNull() {
 			config.DeltaIntervalStart = schedule.DeltaIntervalStart.ValueInt64Pointer()
 		}
-		if !(schedule.DeltaStartOfDay.IsUnknown() || schedule.DeltaStartOfDay.IsNull()) {
+		if !schedule.DeltaStartOfDay.IsUnknown() && !schedule.DeltaStartOfDay.IsNull() {
 			config.DeltaStartOfDay = schedule.DeltaStartOfDay.ValueStringPointer()
 		}
-		if !(schedule.FixedStart.IsUnknown() || schedule.FixedStart.IsNull()) {
+		if !schedule.FixedStart.IsUnknown() && !schedule.FixedStart.IsNull() {
 			config.FixedStart = schedule.FixedStart.ValueStringPointer()
 		}
-		if !(schedule.FixedEnd.IsUnknown() || schedule.FixedEnd.IsNull()) {
+		if !schedule.FixedEnd.IsUnknown() && !schedule.FixedEnd.IsNull() {
 			config.FixedEnd = schedule.FixedEnd.ValueStringPointer()
 		}
-		if !(schedule.OffsetDays.IsUnknown() || schedule.OffsetDays.IsNull()) {
+		if !schedule.OffsetDays.IsUnknown() && !schedule.OffsetDays.IsNull() {
 			config.OffsetDays = schedule.OffsetDays.ValueInt64Pointer()
 		}
-		if !(schedule.NotBeforeDate.IsUnknown() || schedule.NotBeforeDate.IsNull()) {
+		if !schedule.NotBeforeDate.IsUnknown() && !schedule.NotBeforeDate.IsNull() {
 			config.NotBeforeDate = schedule.NotBeforeDate.ValueStringPointer()
 		}
-		if !(schedule.NotBeforeTime.IsUnknown() || schedule.NotBeforeTime.IsNull()) {
+		if !schedule.NotBeforeTime.IsUnknown() && !schedule.NotBeforeTime.IsNull() {
 			config.NotBeforeTime = schedule.NotBeforeTime.ValueStringPointer()
 		}
 		schedules = append(schedules, config)
