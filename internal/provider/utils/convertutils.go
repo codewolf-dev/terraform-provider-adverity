@@ -9,7 +9,7 @@ import (
 	"terraform-provider-adverity/internal/adverity"
 )
 
-// ConvertValue handles values
+// ConvertValue handles values.
 func ConvertValue(value attr.Value) (interface{}, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil
@@ -40,7 +40,7 @@ func ConvertValue(value attr.Value) (interface{}, error) {
 	}
 }
 
-// ConvertNumber handles numbers
+// ConvertNumber handles numbers.
 func ConvertNumber(n types.Number) (interface{}, error) {
 	if n.IsNull() || n.IsUnknown() {
 		return nil, nil
@@ -55,7 +55,7 @@ func ConvertNumber(n types.Number) (interface{}, error) {
 	}
 }
 
-// ConvertList handles lists
+// ConvertList handles lists.
 func ConvertList(l types.List) ([]interface{}, error) {
 	if l.IsNull() || l.IsUnknown() {
 		return nil, nil
@@ -71,7 +71,7 @@ func ConvertList(l types.List) ([]interface{}, error) {
 	return elements, nil
 }
 
-// ConvertSet handle sets
+// ConvertSet handle sets.
 func ConvertSet(s types.Set) ([]interface{}, error) {
 	if s.IsNull() || s.IsUnknown() {
 		return nil, nil
@@ -87,7 +87,7 @@ func ConvertSet(s types.Set) ([]interface{}, error) {
 	return elements, nil
 }
 
-// ConvertTuple handle tuples
+// ConvertTuple handle tuples.
 func ConvertTuple(t types.Tuple) ([]interface{}, error) {
 	if t.IsNull() || t.IsUnknown() {
 		return nil, nil
@@ -103,7 +103,7 @@ func ConvertTuple(t types.Tuple) ([]interface{}, error) {
 	return elements, nil
 }
 
-// ConvertMap handle maps
+// ConvertMap handle maps.
 func ConvertMap(m types.Map) (map[string]interface{}, error) {
 	if m.IsNull() || m.IsUnknown() {
 		return nil, nil
@@ -119,7 +119,7 @@ func ConvertMap(m types.Map) (map[string]interface{}, error) {
 	return elements, nil
 }
 
-// ConvertObject handle objects
+// ConvertObject handle objects.
 func ConvertObject(o types.Object) (map[string]interface{}, error) {
 	if o.IsNull() || o.IsUnknown() {
 		return nil, nil
@@ -161,7 +161,8 @@ func ExpandParameters(params attr.Value, path path.Path, diags *diag.Diagnostics
 	}
 
 	result := make([]adverity.Parameter, 0, len(object.Attributes()))
-	for k, v := range converted.(map[string]interface{}) {
+	parameters, _ := converted.(map[string]interface{}) // we know it is a map[string]interface{} since params is an object
+	for k, v := range parameters {
 		result = append(result, adverity.Parameter{Key: k, Value: v})
 	}
 
