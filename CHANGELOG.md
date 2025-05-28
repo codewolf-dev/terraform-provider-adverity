@@ -1,3 +1,19 @@
-## 0.1.0 (Unreleased)
+## 0.2.0 (Unreleased)
 
-FEATURES:
+### FEATURES:
+
+## 0.1.0
+
+### FEATURES:
+
+Resources:
+- Workspace
+- Connection
+- Datastream
+- Destination
+- Destination Mapping
+
+Data Sources:
+- Connection Type
+- Datastream Type
+- Destination Type
