@@ -2,6 +2,12 @@
 
 ### FEATURES:
 
+## 0.1.1
+
+### FIXES:
+
+- Fixed provider checksum mismatch
+
 ## 0.1.0
 
 ### FEATURES:
