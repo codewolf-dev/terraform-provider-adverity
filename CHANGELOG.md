@@ -2,6 +2,12 @@
 
 ### FEATURES:
 
+## 0.1.2
+
+### FIXES:
+
+- Fixed an inconsistent result when modifying the datatype of a datastream
+
 ## 0.1.1
 
 ### FIXES:

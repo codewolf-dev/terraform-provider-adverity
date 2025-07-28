@@ -530,15 +530,11 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 		Description:         plan.Description.ValueStringPointer(),
 		StackID:             plan.StackID.ValueInt64Pointer(),
 		AuthID:              plan.AuthID.ValueInt64Pointer(),
-		DataType:            plan.DataType.ValueStringPointer(),
 		RetentionType:       plan.RetentionType.ValueInt64Pointer(),
 		RetentionNumber:     plan.RetentionNumber.ValueInt64Pointer(),
 		IsInsightsMediaplan: plan.IsInsightsMediaplan.ValueBoolPointer(),
 		ManageExtractNames:  plan.ManageExtractNames.ValueBoolPointer(),
 		ExtractNameKeys:     plan.ExtractNameKeys.ValueStringPointer(),
-	}
-	if !plan.DataType.IsUnknown() {
-		payload.DataType = plan.DataType.ValueStringPointer()
 	}
 	if !plan.RetentionType.IsUnknown() {
 		payload.RetentionType = plan.RetentionType.ValueInt64Pointer()
@@ -557,6 +553,9 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	schedulePayload := &adverity.DatastreamScheduleConfig{
 		Enabled: plan.Enabled.ValueBoolPointer(),
+	}
+	if !plan.DataType.IsUnknown() {
+		schedulePayload.DataType = plan.DataType.ValueStringPointer()
 	}
 
 	var schedules []adverity.Schedule
