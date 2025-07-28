@@ -29,6 +29,7 @@ type Schedule struct {
 type DatastreamScheduleConfig struct {
 	Schedules *[]Schedule `json:"schedules,omitempty"`
 	Enabled   *bool       `json:"enabled,omitempty"`
+	DataType  *string     `json:"datatype,omitempty"`
 }
 
 type DatastreamUpdateConfig struct {
@@ -36,7 +37,6 @@ type DatastreamUpdateConfig struct {
 	Description         *string      `json:"description,omitempty"`
 	StackID             *int64       `json:"stack,omitempty"`
 	AuthID              *int64       `json:"auth,omitempty"`
-	DataType            *string      `json:"datatype,omitempty"`
 	RetentionType       *int64       `json:"retention_type,omitempty"`
 	RetentionNumber     *int64       `json:"retention_number,omitempty"`
 	OverwriteKeyColumns *bool        `json:"overwrite_key_columns,omitempty"`
