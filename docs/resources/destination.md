@@ -63,6 +63,8 @@ resource "adverity_destination" "bigquery" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Destination can be imported by specifying it's numeric id.
 terraform import adverity_destination.example 123

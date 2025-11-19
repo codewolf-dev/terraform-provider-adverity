@@ -48,6 +48,8 @@ resource "adverity_workspace" "child" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Workspace can be imported by specifying it's slug.
 terraform import adverity_workspace.example abc
