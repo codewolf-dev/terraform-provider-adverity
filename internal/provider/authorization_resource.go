@@ -21,41 +21,41 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &connectionResource{}
-	_ resource.ResourceWithConfigure   = &connectionResource{}
-	_ resource.ResourceWithImportState = &connectionResource{}
+	_ resource.Resource                = &authorizationResource{}
+	_ resource.ResourceWithConfigure   = &authorizationResource{}
+	_ resource.ResourceWithImportState = &authorizationResource{}
 )
 
-// NewConnectionResource is a helper function to simplify the provider implementation.
-func NewConnectionResource() resource.Resource {
-	return &connectionResource{}
+// NewAuthorizationResource is a helper function to simplify the provider implementation.
+func NewAuthorizationResource() resource.Resource {
+	return &authorizationResource{}
 }
 
-// connectionResource is the resource implementation.
-type connectionResource struct {
+// authorizationResource is the resource implementation.
+type authorizationResource struct {
 	client *adverity.Client
 }
 
-// connectionResourceModel maps the resource schema data.
-type connectionResourceModel struct {
-	ConnectionTypeId types.Int64   `tfsdk:"connection_type_id"`
-	ID               types.Int64   `tfsdk:"id"`
-	Name             types.String  `tfsdk:"name"`
-	StackID          types.Int64   `tfsdk:"stack_id"`
-	IsAuthorized     types.Bool    `tfsdk:"is_authorized"`
-	Parameters       types.Dynamic `tfsdk:"parameters"`
-	LastUpdated      types.String  `tfsdk:"last_updated"`
+// authorizationResourceModel maps the resource schema data.
+type authorizationResourceModel struct {
+	AuthorizationTypeId types.Int64   `tfsdk:"authorization_type_id"`
+	ID                  types.Int64   `tfsdk:"id"`
+	Name                types.String  `tfsdk:"name"`
+	StackID             types.Int64   `tfsdk:"stack_id"`
+	IsAuthorized        types.Bool    `tfsdk:"is_authorized"`
+	Parameters          types.Dynamic `tfsdk:"parameters"`
+	LastUpdated         types.String  `tfsdk:"last_updated"`
 }
 
-func (r *connectionResource) refreshState(connection *adverity.AuthorizationResponse, state *connectionResourceModel) {
-	state.ID = types.Int64Value(connection.ID)
-	state.Name = types.StringValue(connection.Name)
-	state.StackID = types.Int64Value(connection.StackID)
-	state.IsAuthorized = types.BoolValue(connection.IsAuthorized)
+func (r *authorizationResource) refreshState(authorization *adverity.AuthorizationResponse, state *authorizationResourceModel) {
+	state.ID = types.Int64Value(authorization.ID)
+	state.Name = types.StringValue(authorization.Name)
+	state.StackID = types.Int64Value(authorization.StackID)
+	state.IsAuthorized = types.BoolValue(authorization.IsAuthorized)
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *connectionResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *authorizationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
 	// sets that data after it calls the ConfigureProvider RPC.
 	if req.ProviderData == nil {
@@ -77,32 +77,32 @@ func (r *connectionResource) Configure(_ context.Context, req resource.Configure
 }
 
 // Metadata returns the resource type name.
-func (r *connectionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_connection"
+func (r *authorizationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_authorization"
 }
 
 // Schema defines the schema for the resource.
-func (r *connectionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *authorizationResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "(Deprecated, use 'authorization' resource instead) Manages a connection.",
+		Description: "Manages an authorization.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
-				Description: "Numeric identifier of the connection.",
+				Description: "Numeric identifier of the authorization.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the connection.",
+				Description: "Timestamp of the last Terraform update of the authorization.",
 				Computed:    true,
 			},
-			"connection_type_id": schema.Int64Attribute{
-				Description: "Numeric identifier of the connection type.",
+			"authorization_type_id": schema.Int64Attribute{
+				Description: "Numeric identifier of the authorization type.",
 				Required:    true,
 			},
 			"name": schema.StringAttribute{
-				Description: "Name of the connection.",
+				Description: "Name of the authorization.",
 				Required:    true,
 			},
 			"stack_id": schema.Int64Attribute{
@@ -110,11 +110,11 @@ func (r *connectionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Optional:    true,
 			},
 			"is_authorized": schema.BoolAttribute{
-				Description: "Whether the connection is authorized.",
+				Description: "Whether the authorization is authorized.",
 				Computed:    true,
 			},
 			"parameters": schema.DynamicAttribute{
-				Description: "Additional connection parameters.",
+				Description: "Additional authorization parameters.",
 				Optional:    true,
 			},
 		},
@@ -122,9 +122,9 @@ func (r *connectionResource) Schema(_ context.Context, _ resource.SchemaRequest,
 }
 
 // Create a new resource.
-func (r *connectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *authorizationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan connectionResourceModel
+	var plan authorizationResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -145,18 +145,18 @@ func (r *connectionResource) Create(ctx context.Context, req resource.CreateRequ
 		payload.Parameters = &parameters
 	}
 
-	// Create new connection
-	connection, err := r.client.CreateAuthorization(int(plan.ConnectionTypeId.ValueInt64()), payload)
+	// Create new authorization
+	authorization, err := r.client.CreateAuthorization(int(plan.AuthorizationTypeId.ValueInt64()), payload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating connection",
-			"Could not create connection, unexpected error: "+err.Error(),
+			"Error creating authorization",
+			"Could not create authorization, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	// Map response body to schema and populate computed attribute values
-	r.refreshState(connection, &plan)
+	r.refreshState(authorization, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	// Set state to fully populated data
@@ -168,27 +168,27 @@ func (r *connectionResource) Create(ctx context.Context, req resource.CreateRequ
 }
 
 // Read resource information.
-func (r *connectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *authorizationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state connectionResourceModel
+	var state authorizationResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get refreshed connection value from Adverity
-	connection, err := r.client.ReadAuthorization(int(state.ConnectionTypeId.ValueInt64()), int(state.ID.ValueInt64()))
+	// Get refreshed authorization value from Adverity
+	authorization, err := r.client.ReadAuthorization(int(state.AuthorizationTypeId.ValueInt64()), int(state.ID.ValueInt64()))
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error reading Adverity connection",
-			"Could not read connection, unexpected error: "+err.Error(),
+			"Error reading Adverity authorization",
+			"Could not read authorization, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	// Overwrite state with refreshed attributes
-	r.refreshState(connection, &state)
+	r.refreshState(authorization, &state)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -198,9 +198,9 @@ func (r *connectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 }
 
-func (r *connectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *authorizationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan connectionResourceModel
+	var plan authorizationResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 
@@ -218,18 +218,18 @@ func (r *connectionResource) Update(ctx context.Context, req resource.UpdateRequ
 		payload.Parameters = &parameters
 	}
 
-	// Update existing connection
-	connection, err := r.client.UpdateAuthorization(int(plan.ConnectionTypeId.ValueInt64()), int(plan.ID.ValueInt64()), payload)
+	// Update existing authorization
+	authorization, err := r.client.UpdateAuthorization(int(plan.AuthorizationTypeId.ValueInt64()), int(plan.ID.ValueInt64()), payload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Adverity connection",
-			"Could not update connection, unexpected error: "+err.Error(),
+			"Error Updating Adverity authorization",
+			"Could not update authorization, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	// Update resource state with updated attributes and timestamp
-	r.refreshState(connection, &plan)
+	r.refreshState(authorization, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
@@ -240,27 +240,27 @@ func (r *connectionResource) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *connectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *authorizationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state connectionResourceModel
+	var state authorizationResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Delete existing connection
-	_, err := r.client.DeleteAuthorization(int(state.ConnectionTypeId.ValueInt64()), int(state.ID.ValueInt64()))
+	// Delete existing authorization
+	_, err := r.client.DeleteAuthorization(int(state.AuthorizationTypeId.ValueInt64()), int(state.ID.ValueInt64()))
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error deleting Adverity connection",
-			"Could not delete connection, unexpected error: "+err.Error(),
+			"Error deleting Adverity authorization",
+			"Could not delete authorization, unexpected error: "+err.Error(),
 		)
 		return
 	}
 }
 
-func (r *connectionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *authorizationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

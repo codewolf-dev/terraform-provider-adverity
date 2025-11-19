@@ -8,11 +8,11 @@ import (
 )
 
 type DestinationType struct {
-	ID      int64  `json:"id"`
-	Name    string `json:"name"`
-	Slug    string `json:"slug"`
-	URL     string `json:"url"`
-	Targets string `json:"targets"`
+	ID           int64  `json:"id"`
+	Name         string `json:"name"`
+	Slug         string `json:"slug"`
+	URL          string `json:"url"`
+	Destinations string `json:"targets"`
 }
 
 type destinationTypeQueryResponse struct {

@@ -8,17 +8,17 @@ import (
 	"strconv"
 )
 
-type ConnectionConfig struct {
+type AuthorizationConfig struct {
 	Name       *string      `json:"name,omitempty"`
 	StackID    *int64       `json:"stack,omitempty"`
 	Parameters *[]Parameter `json:"-"`
 }
 
-func (c *ConnectionConfig) MarshalJSON() ([]byte, error) {
+func (c *AuthorizationConfig) MarshalJSON() ([]byte, error) {
 	return FlattenedMarshal(c, c.Parameters)
 }
 
-type ConnectionResponse struct {
+type AuthorizationResponse struct {
 	ID            int64  `json:"id"`
 	Name          string `json:"name"`
 	MetadataSlack int64  `json:"metadata_slack"`
@@ -28,30 +28,30 @@ type ConnectionResponse struct {
 	IsAuthorized  bool   `json:"is_authorized"`
 }
 
-func (c *Client) CreateConnection(connectionTypeId int, req *ConnectionConfig) (*ConnectionResponse, error) {
+func (c *Client) CreateAuthorization(connectionTypeId int, req *AuthorizationConfig) (*AuthorizationResponse, error) {
 	r, _ := url.JoinPath("connection-types", strconv.Itoa(connectionTypeId), "connections", "/")
 	p, _ := url.Parse(r)
 
-	return Create[ConnectionConfig, ConnectionResponse](c, p, req, nil)
+	return Create[AuthorizationConfig, AuthorizationResponse](c, p, req, nil)
 }
 
-func (c *Client) ReadConnection(connectionTypeId, connectionId int) (*ConnectionResponse, error) {
+func (c *Client) ReadAuthorization(connectionTypeId, connectionId int) (*AuthorizationResponse, error) {
 	r, _ := url.JoinPath("connection-types", strconv.Itoa(connectionTypeId), "connections", strconv.Itoa(connectionId), "/")
 	p, _ := url.Parse(r)
 
-	return Read[ConnectionResponse](c, p, nil)
+	return Read[AuthorizationResponse](c, p, nil)
 }
 
-func (c *Client) UpdateConnection(connectionTypeId, connectionId int, req *ConnectionConfig) (*ConnectionResponse, error) {
+func (c *Client) UpdateAuthorization(connectionTypeId, connectionId int, req *AuthorizationConfig) (*AuthorizationResponse, error) {
 	r, _ := url.JoinPath("connection-types", strconv.Itoa(connectionTypeId), "connections", strconv.Itoa(connectionId), "/")
 	p, _ := url.Parse(r)
 
-	return Update[ConnectionConfig, ConnectionResponse](c, p, req, nil)
+	return Update[AuthorizationConfig, AuthorizationResponse](c, p, req, nil)
 }
 
-func (c *Client) DeleteConnection(connectionTypeId, connectionId int) (*ConnectionResponse, error) {
+func (c *Client) DeleteAuthorization(connectionTypeId, connectionId int) (*AuthorizationResponse, error) {
 	r, _ := url.JoinPath("connection-types", strconv.Itoa(connectionTypeId), "connections", strconv.Itoa(connectionId), "/")
 	p, _ := url.Parse(r)
 
-	return Delete[ConnectionResponse](c, p, nil)
+	return Delete[AuthorizationResponse](c, p, nil)
 }

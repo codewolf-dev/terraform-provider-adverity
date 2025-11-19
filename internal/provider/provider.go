@@ -166,6 +166,7 @@ func (p *AdverityProvider) Resources(ctx context.Context) []func() resource.Reso
 		NewExampleResource,
 		NewWorkspaceResource,
 		NewConnectionResource,
+		NewAuthorizationResource,
 		NewDatastreamResource,
 		NewDestinationResource,
 		NewDestinationMappingResource,
@@ -177,6 +178,7 @@ func (p *AdverityProvider) DataSources(ctx context.Context) []func() datasource.
 	return []func() datasource.DataSource{
 		NewExampleDataSource,
 		NewConnectionTypeDataSource,
+		NewAuthorizationTypeDataSource,
 		NewDatastreamTypeDataSource,
 		NewDestinationTypeDataSource,
 	}

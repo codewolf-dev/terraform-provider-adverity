@@ -18,28 +18,28 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ datasource.DataSource              = &connectionTypeDataSource{}
-	_ datasource.DataSourceWithConfigure = &connectionTypeDataSource{}
+	_ datasource.DataSource              = &authorizationTypeDataSource{}
+	_ datasource.DataSourceWithConfigure = &authorizationTypeDataSource{}
 )
 
-// NewConnectionTypeDataSource is a helper function to simplify the provider implementation.
-func NewConnectionTypeDataSource() datasource.DataSource {
-	return &connectionTypeDataSource{}
+// NewAuthorizationTypeDataSource is a helper function to simplify the provider implementation.
+func NewAuthorizationTypeDataSource() datasource.DataSource {
+	return &authorizationTypeDataSource{}
 }
 
-// connectionTypeDataSource is the data source implementation.
-type connectionTypeDataSource struct {
+// authorizationTypeDataSource is the data source implementation.
+type authorizationTypeDataSource struct {
 	client *adverity.Client
 }
 
-// connectionTypeDataSourceModel maps the data source schema data.
-type connectionTypeDataSourceModel struct {
+// authorizationTypeDataSourceModel maps the data source schema data.
+type authorizationTypeDataSourceModel struct {
 	SearchTerm types.String `tfsdk:"search_term"`
 	Results    types.Map    `tfsdk:"results"`
 }
 
 // Configure adds the provider configured client to the data source.
-func (d *connectionTypeDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *authorizationTypeDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
 	// sets that data after it calls the ConfigureProvider RPC.
 	if req.ProviderData == nil {
@@ -60,14 +60,14 @@ func (d *connectionTypeDataSource) Configure(_ context.Context, req datasource.C
 }
 
 // Metadata returns the data source type name.
-func (d *connectionTypeDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_connection_type"
+func (d *authorizationTypeDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_authorization_type"
 }
 
 // Schema defines the schema for the data source.
-func (d *connectionTypeDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *authorizationTypeDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "(Deprecated, use 'authorization_type' data source instead) Fetches the list of connection types.",
+		Description: "Fetches the list of authorization types.",
 		Attributes: map[string]schema.Attribute{
 			"search_term": schema.StringAttribute{
 				Description: "Search term to filter on.",
@@ -83,28 +83,28 @@ func (d *connectionTypeDataSource) Schema(_ context.Context, _ datasource.Schema
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (d *connectionTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *authorizationTypeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	// Retrieve values from config
-	var data connectionTypeDataSourceModel
+	var data authorizationTypeDataSourceModel
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	connectionTypes, err := d.client.QueryAuthorizationTypes(data.SearchTerm.ValueString())
+	authorizationTypes, err := d.client.QueryAuthorizationTypes(data.SearchTerm.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error querying Adverity connection types",
-			"Could not query connection types, unexpected error: "+err.Error(),
+			"Error querying Adverity authorization types",
+			"Could not query authorization types, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	// Map response body to model
-	results := make(map[string]attr.Value, len(connectionTypes))
-	for _, connectionType := range connectionTypes {
-		results[connectionType.Slug] = types.Int64Value(connectionType.ID)
+	results := make(map[string]attr.Value, len(authorizationTypes))
+	for _, authorizationType := range authorizationTypes {
+		results[authorizationType.Slug] = types.Int64Value(authorizationType.ID)
 	}
 
 	// Convert results to types.Map
