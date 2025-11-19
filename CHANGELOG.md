@@ -1,6 +1,14 @@
-## 0.2.0 (Unreleased)
+## 0.2.0
 
 ### FEATURES:
+
+Resource:
+- Authorization (reimplemented and renamed from Connection to align with UI terminology)
+
+### DEPRECATIONS
+
+Resource:
+- Connection (deprecated and replaced by Authorization; will be removed in a future release)
 
 ## 0.1.2
 
