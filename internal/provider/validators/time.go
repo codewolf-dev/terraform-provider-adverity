@@ -1,3 +1,6 @@
+// Copyright (c) codewolf.dev
+// SPDX-License-Identifier: MPL-2.0
+
 package validators
 
 import (
