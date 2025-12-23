@@ -10,6 +10,7 @@ import (
 
 	"terraform-provider-adverity/internal/adverity"
 	"terraform-provider-adverity/internal/provider/utils"
+	"terraform-provider-adverity/internal/provider/validators"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -285,6 +287,9 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+							Validators: []validator.String{
+								validators.TimeHHMMSS(),
+							},
 						},
 						"time_range_preset": schema.Int64Attribute{
 							Description: "Time range preset.",
@@ -333,6 +338,9 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+							Validators: []validator.String{
+								validators.DateYYYYMMDD(),
+							},
 						},
 						"fixed_end": schema.StringAttribute{
 							Description: "Fixed end.",
@@ -340,6 +348,9 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Computed:    true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
+							},
+							Validators: []validator.String{
+								validators.DateYYYYMMDD(),
 							},
 						},
 						"offset_days": schema.Int64Attribute{
@@ -357,6 +368,9 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+							Validators: []validator.String{
+								validators.DateYYYYMMDD(),
+							},
 						},
 						"not_before_time": schema.StringAttribute{
 							Description: "Not before time.",
@@ -364,6 +378,9 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Computed:    true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
+							},
+							Validators: []validator.String{
+								validators.TimeHHMMSS(),
 							},
 						},
 					},
