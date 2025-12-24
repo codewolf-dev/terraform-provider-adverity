@@ -115,6 +115,63 @@ func (r *datastreamResource) refreshState(datastream *adverity.DatastreamRespons
 	state.Schedules = schedules
 }
 
+func (r *datastreamResource) mapSchedulesToConfig(plan datastreamResourceModel) *[]adverity.Schedule {
+	var schedules []adverity.Schedule
+
+	for _, schedule := range plan.Schedules {
+		config := adverity.Schedule{}
+
+		if !schedule.CronPreset.IsUnknown() {
+			config.CronPreset = schedule.CronPreset.ValueStringPointer()
+		}
+		if !schedule.CronType.IsUnknown() {
+			config.CronType = schedule.CronType.ValueStringPointer()
+		}
+		if !schedule.CronInterval.IsUnknown() {
+			config.CronInterval = schedule.CronInterval.ValueInt64Pointer()
+		}
+		if !schedule.CronIntervalStart.IsUnknown() {
+			config.CronIntervalStart = schedule.CronIntervalStart.ValueInt64Pointer()
+		}
+		if !schedule.CronStartOfDay.IsUnknown() {
+			config.CronStartOfDay = schedule.CronStartOfDay.ValueStringPointer()
+		}
+		if !schedule.TimeRangePreset.IsUnknown() {
+			config.TimeRangePreset = schedule.TimeRangePreset.ValueInt64Pointer()
+		}
+		if !schedule.DeltaType.IsUnknown() {
+			config.DeltaType = schedule.DeltaType.ValueInt64Pointer()
+		}
+		if !schedule.DeltaInterval.IsUnknown() {
+			config.DeltaInterval = schedule.DeltaInterval.ValueInt64Pointer()
+		}
+		if !schedule.DeltaIntervalStart.IsUnknown() {
+			config.DeltaIntervalStart = schedule.DeltaIntervalStart.ValueInt64Pointer()
+		}
+		if !schedule.DeltaStartOfDay.IsUnknown() {
+			config.DeltaStartOfDay = schedule.DeltaStartOfDay.ValueStringPointer()
+		}
+		if !schedule.FixedStart.IsUnknown() {
+			config.FixedStart = schedule.FixedStart.ValueStringPointer()
+		}
+		if !schedule.FixedEnd.IsUnknown() {
+			config.FixedEnd = schedule.FixedEnd.ValueStringPointer()
+		}
+		if !schedule.OffsetDays.IsUnknown() {
+			config.OffsetDays = schedule.OffsetDays.ValueInt64Pointer()
+		}
+		if !schedule.NotBeforeDate.IsUnknown() {
+			config.NotBeforeDate = schedule.NotBeforeDate.ValueStringPointer()
+		}
+		if !schedule.NotBeforeTime.IsUnknown() {
+			config.NotBeforeTime = schedule.NotBeforeTime.ValueStringPointer()
+		}
+
+		schedules = append(schedules, config)
+	}
+	return &schedules
+}
+
 // Configure adds the provider configured client to the resource.
 func (r *datastreamResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
@@ -248,45 +305,32 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Schedule the datastream.",
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
+						// We don't use plan modifiers for any attribute here because Adverity changes
+						// attributes based on presets (e.g. cron_type and cron_interval are derived from cron_preset)
 						"cron_preset": schema.StringAttribute{
 							Description: "Cron preset.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"cron_type": schema.StringAttribute{
 							Description: "Cron type.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"cron_interval": schema.Int64Attribute{
 							Description: "Cron interval.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"cron_interval_start": schema.Int64Attribute{
 							Description: "Cron interval start.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"cron_start_of_day": schema.StringAttribute{
 							Description: "Cron start of day.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								validators.TimeHHMMSS(),
 							},
@@ -295,49 +339,31 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Description: "Time range preset.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"delta_type": schema.Int64Attribute{
 							Description: "Delta type.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"delta_interval": schema.Int64Attribute{
 							Description: "Delta interval.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"delta_interval_start": schema.Int64Attribute{
 							Description: "Delta interval start.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"delta_start_of_day": schema.StringAttribute{
 							Description: "Delta start of day.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"fixed_start": schema.StringAttribute{
 							Description: "Fixed start.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								validators.DateYYYYMMDD(),
 							},
@@ -346,9 +372,6 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Description: "Fixed end.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								validators.DateYYYYMMDD(),
 							},
@@ -357,17 +380,11 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Description: "Offset days.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"not_before_date": schema.StringAttribute{
 							Description: "Not before date.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								validators.DateYYYYMMDD(),
 							},
@@ -376,9 +393,6 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Description: "Not before time.",
 							Optional:    true,
 							Computed:    true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 							Validators: []validator.String{
 								validators.TimeHHMMSS(),
 							},
@@ -406,7 +420,6 @@ func (r *datastreamResource) Create(ctx context.Context, req resource.CreateRequ
 		Description:         plan.Description.ValueStringPointer(),
 		StackID:             plan.StackID.ValueInt64Pointer(),
 		AuthID:              plan.AuthID.ValueInt64Pointer(),
-		DataType:            plan.DataType.ValueStringPointer(),
 		IsInsightsMediaplan: plan.IsInsightsMediaplan.ValueBoolPointer(),
 		ManageExtractNames:  plan.ManageExtractNames.ValueBoolPointer(),
 		ExtractNameKeys:     plan.ExtractNameKeys.ValueStringPointer(),
@@ -430,57 +443,7 @@ func (r *datastreamResource) Create(ctx context.Context, req resource.CreateRequ
 		payload.Parameters = &parameters
 	}
 
-	var schedules []adverity.Schedule
-	for _, schedule := range plan.Schedules {
-		config := adverity.Schedule{}
-		if !schedule.CronPreset.IsUnknown() {
-			config.CronPreset = schedule.CronPreset.ValueStringPointer()
-		}
-		if !schedule.CronType.IsUnknown() {
-			config.CronType = schedule.CronType.ValueStringPointer()
-		}
-		if !schedule.CronInterval.IsUnknown() {
-			config.CronInterval = schedule.CronInterval.ValueInt64Pointer()
-		}
-		if !schedule.CronIntervalStart.IsUnknown() {
-			config.CronIntervalStart = schedule.CronIntervalStart.ValueInt64Pointer()
-		}
-		if !schedule.CronStartOfDay.IsUnknown() {
-			config.CronStartOfDay = schedule.CronStartOfDay.ValueStringPointer()
-		}
-		if !schedule.TimeRangePreset.IsUnknown() {
-			config.TimeRangePreset = schedule.TimeRangePreset.ValueInt64Pointer()
-		}
-		if !schedule.DeltaType.IsUnknown() {
-			config.DeltaType = schedule.DeltaType.ValueInt64Pointer()
-		}
-		if !schedule.DeltaInterval.IsUnknown() {
-			config.DeltaInterval = schedule.DeltaInterval.ValueInt64Pointer()
-		}
-		if !schedule.DeltaIntervalStart.IsUnknown() {
-			config.DeltaIntervalStart = schedule.DeltaIntervalStart.ValueInt64Pointer()
-		}
-		if !schedule.DeltaStartOfDay.IsUnknown() {
-			config.DeltaStartOfDay = schedule.DeltaStartOfDay.ValueStringPointer()
-		}
-		if !schedule.FixedStart.IsUnknown() {
-			config.FixedStart = schedule.FixedStart.ValueStringPointer()
-		}
-		if !schedule.FixedEnd.IsUnknown() {
-			config.FixedEnd = schedule.FixedEnd.ValueStringPointer()
-		}
-		if !schedule.OffsetDays.IsUnknown() {
-			config.OffsetDays = schedule.OffsetDays.ValueInt64Pointer()
-		}
-		if !schedule.NotBeforeDate.IsUnknown() {
-			config.NotBeforeDate = schedule.NotBeforeDate.ValueStringPointer()
-		}
-		if !schedule.NotBeforeTime.IsUnknown() {
-			config.NotBeforeTime = schedule.NotBeforeTime.ValueStringPointer()
-		}
-		schedules = append(schedules, config)
-	}
-	payload.Schedules = &schedules
+	payload.Schedules = r.mapSchedulesToConfig(plan)
 
 	// Create new datastream
 	datastream, err := r.client.CreateDatastream(int(plan.DatastreamTypeId.ValueInt64()), payload)
@@ -547,8 +510,6 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 		Description:         plan.Description.ValueStringPointer(),
 		StackID:             plan.StackID.ValueInt64Pointer(),
 		AuthID:              plan.AuthID.ValueInt64Pointer(),
-		RetentionType:       plan.RetentionType.ValueInt64Pointer(),
-		RetentionNumber:     plan.RetentionNumber.ValueInt64Pointer(),
 		IsInsightsMediaplan: plan.IsInsightsMediaplan.ValueBoolPointer(),
 		ManageExtractNames:  plan.ManageExtractNames.ValueBoolPointer(),
 		ExtractNameKeys:     plan.ExtractNameKeys.ValueStringPointer(),
@@ -575,64 +536,14 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 		schedulePayload.DataType = plan.DataType.ValueStringPointer()
 	}
 
-	var schedules []adverity.Schedule
-	for _, schedule := range plan.Schedules {
-		config := adverity.Schedule{}
-		if !schedule.CronPreset.IsUnknown() && !schedule.CronPreset.IsNull() {
-			config.CronPreset = schedule.CronPreset.ValueStringPointer()
-		}
-		if !schedule.CronType.IsUnknown() && !schedule.CronType.IsNull() {
-			config.CronType = schedule.CronType.ValueStringPointer()
-		}
-		if !schedule.CronInterval.IsUnknown() && !schedule.CronInterval.IsNull() {
-			config.CronInterval = schedule.CronInterval.ValueInt64Pointer()
-		}
-		if !schedule.CronIntervalStart.IsUnknown() && !schedule.CronIntervalStart.IsNull() {
-			config.CronIntervalStart = schedule.CronIntervalStart.ValueInt64Pointer()
-		}
-		if !schedule.CronStartOfDay.IsUnknown() && !schedule.CronStartOfDay.IsNull() {
-			config.CronStartOfDay = schedule.CronStartOfDay.ValueStringPointer()
-		}
-		if !schedule.TimeRangePreset.IsUnknown() && !schedule.TimeRangePreset.IsNull() {
-			config.TimeRangePreset = schedule.TimeRangePreset.ValueInt64Pointer()
-		}
-		if !schedule.DeltaType.IsUnknown() && !schedule.DeltaType.IsNull() {
-			config.DeltaType = schedule.DeltaType.ValueInt64Pointer()
-		}
-		if !schedule.DeltaInterval.IsUnknown() && !schedule.DeltaInterval.IsNull() {
-			config.DeltaInterval = schedule.DeltaInterval.ValueInt64Pointer()
-		}
-		if !schedule.DeltaIntervalStart.IsUnknown() && !schedule.DeltaIntervalStart.IsNull() {
-			config.DeltaIntervalStart = schedule.DeltaIntervalStart.ValueInt64Pointer()
-		}
-		if !schedule.DeltaStartOfDay.IsUnknown() && !schedule.DeltaStartOfDay.IsNull() {
-			config.DeltaStartOfDay = schedule.DeltaStartOfDay.ValueStringPointer()
-		}
-		if !schedule.FixedStart.IsUnknown() && !schedule.FixedStart.IsNull() {
-			config.FixedStart = schedule.FixedStart.ValueStringPointer()
-		}
-		if !schedule.FixedEnd.IsUnknown() && !schedule.FixedEnd.IsNull() {
-			config.FixedEnd = schedule.FixedEnd.ValueStringPointer()
-		}
-		if !schedule.OffsetDays.IsUnknown() && !schedule.OffsetDays.IsNull() {
-			config.OffsetDays = schedule.OffsetDays.ValueInt64Pointer()
-		}
-		if !schedule.NotBeforeDate.IsUnknown() && !schedule.NotBeforeDate.IsNull() {
-			config.NotBeforeDate = schedule.NotBeforeDate.ValueStringPointer()
-		}
-		if !schedule.NotBeforeTime.IsUnknown() && !schedule.NotBeforeTime.IsNull() {
-			config.NotBeforeTime = schedule.NotBeforeTime.ValueStringPointer()
-		}
-		schedules = append(schedules, config)
-	}
-	schedulePayload.Schedules = &schedules
+	schedulePayload.Schedules = r.mapSchedulesToConfig(plan)
 
 	// Update existing datastream schedule
 	// We ignore the returned body since not all fields are populated by this endpoint for a state refresh (e.g. stack_id)
 	_, err := r.client.UpdateDatastreamSchedule(int(plan.ID.ValueInt64()), schedulePayload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Adverity datastream schedule",
+			"Error updating Adverity datastream schedule",
 			"Could not update datastream schedule, unexpected error: "+err.Error(),
 		)
 		return
@@ -643,7 +554,7 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 	datastream, err := r.client.UpdateDatastream(int(plan.DatastreamTypeId.ValueInt64()), int(plan.ID.ValueInt64()), payload)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Adverity datastream",
+			"Error updating Adverity datastream",
 			"Could not update datastream, unexpected error: "+err.Error(),
 		)
 		return
