@@ -1,3 +1,9 @@
+## 0.2.1
+
+### FIXES:
+
+- Fixed an inconsistent result when modifying the schedule(s) of a datastream
+
 ## 0.2.0
 
 ### FEATURES:
