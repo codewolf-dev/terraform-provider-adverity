@@ -77,15 +77,6 @@ func (c *DatastreamCreateConfig) MarshalJSON() ([]byte, error) {
 
 type DatastreamResponse struct {
 	ID                  int64      `json:"id"`
-	CronType            string     `json:"cron_type"`
-	CronInterval        int64      `json:"cron_interval"`
-	CronStartOfDay      string     `json:"cron_start_of_day"`
-	CronIntervalStart   int64      `json:"cron_interval_start"`
-	TimeRangePreset     int64      `json:"time_range_preset"`
-	DeltaType           int64      `json:"delta_type"`
-	DeltaInterval       int64      `json:"delta_interval"`
-	DeltaIntervalStart  int64      `json:"delta_interval_start"`
-	DeltaStartOfDay     string     `json:"delta_start_of_day"`
 	DataType            string     `json:"datatype"`
 	Creator             string     `json:"creator"`
 	DatastreamTypeID    int64      `json:"datastream_type_id"`
