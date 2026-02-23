@@ -1,4 +1,4 @@
-// Copyright (c) codewolf.dev
+// Copyright codewolf.dev 2025, 0
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
