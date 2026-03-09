@@ -9,6 +9,7 @@ import (
 )
 
 type Schedule struct {
+	ID                 *int64  `json:"id,omitempty"`
 	CronPreset         *string `json:"cron_preset,omitempty"`
 	CronType           *string `json:"cron_type,omitempty"`
 	CronInterval       *int64  `json:"cron_interval,omitempty"`

@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"terraform-provider-adverity/internal/adverity"
@@ -91,6 +92,14 @@ func (r *datastreamResource) refreshState(datastream *adverity.DatastreamRespons
 	state.ManageExtractNames = types.BoolValue(datastream.ManageExtractNames)
 	state.ExtractNameKeys = types.StringValue(datastream.ExtractNameKeys)
 	state.Enabled = types.BoolValue(datastream.Enabled)
+
+	// Workaround to preserve the order of schedules created by Terraform. Adverity does
+	// not guarantee proper schedule ordering in POST, PATCH or GET responses.
+	// This ensures that Terraform doesn't detect spurious changes to the schedules on
+	// every plan/apply and avoids inconsistent results.
+	sort.Slice(datastream.Schedules, func(i, j int) bool {
+		return *datastream.Schedules[i].ID < *datastream.Schedules[j].ID
+	})
 
 	var schedules []datastreamScheduleModel
 	for _, schedule := range datastream.Schedules {
