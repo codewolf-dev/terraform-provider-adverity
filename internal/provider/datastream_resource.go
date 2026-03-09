@@ -116,7 +116,7 @@ func (r *datastreamResource) refreshState(datastream *adverity.DatastreamRespons
 }
 
 func (r *datastreamResource) mapSchedulesToConfig(plan datastreamResourceModel) *[]adverity.Schedule {
-	var schedules []adverity.Schedule
+	schedules := make([]adverity.Schedule, 0) // we want to send an empty array when there are no schedules set
 
 	for _, schedule := range plan.Schedules {
 		config := adverity.Schedule{}
@@ -169,6 +169,7 @@ func (r *datastreamResource) mapSchedulesToConfig(plan datastreamResourceModel) 
 
 		schedules = append(schedules, config)
 	}
+
 	return &schedules
 }
 
@@ -455,6 +456,34 @@ func (r *datastreamResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
+	// Workaround for removing default schedules created by Adverity when
+	// no schedules are defined in the datastream resource block.
+	// If no schedule blocks were defined, delete the default schedule so
+	// the actual state on the server matches the Terraform configuration.
+	if len(plan.Schedules) == 0 && len(datastream.Schedules) > 0 {
+		emptySchedules := make([]adverity.Schedule, 0)
+		schedulePayload := &adverity.DatastreamScheduleConfig{
+			Schedules: &emptySchedules,
+			Enabled:   plan.Enabled.ValueBoolPointer(),
+		}
+		_, err = r.client.UpdateDatastreamSchedule(int(datastream.ID), schedulePayload)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error removing default schedule from datastream",
+				"Could not remove default schedule, unexpected error: "+err.Error(),
+			)
+			return
+		}
+		datastream, err = r.client.ReadDatastream(int(datastream.DatastreamTypeID), int(datastream.ID))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading Adverity datastream",
+				"Could not read datastream, unexpected error: "+err.Error(),
+			)
+			return
+		}
+	}
+
 	// Map response body to schema and populate computed attribute values
 	r.refreshState(datastream, &plan)
 	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
@@ -503,6 +532,9 @@ func (r *datastreamResource) Update(ctx context.Context, req resource.UpdateRequ
 	var plan datastreamResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Generate API request body from plan
 	payload := &adverity.DatastreamUpdateConfig{
