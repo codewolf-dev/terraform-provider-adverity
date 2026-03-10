@@ -1,4 +1,4 @@
-// Copyright codewolf.dev 2025, 0
+// Copyright codewolf.dev 2025, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package main
