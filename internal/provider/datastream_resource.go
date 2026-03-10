@@ -13,6 +13,8 @@ import (
 	"terraform-provider-adverity/internal/provider/utils"
 	"terraform-provider-adverity/internal/provider/validators"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -321,16 +323,26 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Description: "Cron preset.",
 							Optional:    true,
 							Computed:    true,
+							Validators: []validator.String{
+								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("cron_type")),
+								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("cron_interval")),
+							},
 						},
 						"cron_type": schema.StringAttribute{
 							Description: "Cron type.",
 							Optional:    true,
 							Computed:    true,
+							Validators: []validator.String{
+								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("cron_preset")),
+							},
 						},
 						"cron_interval": schema.Int64Attribute{
 							Description: "Cron interval.",
 							Optional:    true,
 							Computed:    true,
+							Validators: []validator.Int64{
+								int64validator.ConflictsWith(path.MatchRelative().AtParent().AtName("cron_preset")),
+							},
 						},
 						"cron_interval_start": schema.Int64Attribute{
 							Description: "Cron interval start.",
