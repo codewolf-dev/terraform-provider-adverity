@@ -1,15 +1,16 @@
-// Copyright codewolf.dev 2025, 0
+// Copyright codewolf.dev 2025, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package utils
 
 import (
 	"fmt"
+	"terraform-provider-adverity/internal/adverity"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"terraform-provider-adverity/internal/adverity"
 )
 
 // ConvertValue handles values.
