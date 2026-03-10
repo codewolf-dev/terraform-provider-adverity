@@ -6,9 +6,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"time"
 
 	"terraform-provider-adverity/internal/adverity"
 	"terraform-provider-adverity/internal/provider/utils"
@@ -222,6 +223,9 @@ func (r *destinationMappingResource) Update(ctx context.Context, req resource.Up
 	var plan destinationMappingResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Generate API request body from plan
 	payload := &adverity.DestinationMappingConfig{

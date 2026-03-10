@@ -84,7 +84,8 @@ func (r *connectionResource) Metadata(_ context.Context, req resource.MetadataRe
 // Schema defines the schema for the resource.
 func (r *connectionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "(Deprecated, use 'authorization' resource instead) Manages a connection.",
+		Description:        "Manages a connection.",
+		DeprecationMessage: "Use 'authorization' resource instead.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
 				Description: "Numeric identifier of the connection.",
@@ -203,6 +204,9 @@ func (r *connectionResource) Update(ctx context.Context, req resource.UpdateRequ
 	var plan connectionResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Generate API request body from plan
 	payload := &adverity.AuthorizationConfig{

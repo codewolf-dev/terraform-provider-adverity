@@ -203,6 +203,9 @@ func (r *authorizationResource) Update(ctx context.Context, req resource.UpdateR
 	var plan authorizationResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Generate API request body from plan
 	payload := &adverity.AuthorizationConfig{

@@ -204,6 +204,9 @@ func (r *workspaceResource) Update(ctx context.Context, req resource.UpdateReque
 	var plan workspaceResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Generate API request body from plan
 	payload := &adverity.WorkspaceConfig{
