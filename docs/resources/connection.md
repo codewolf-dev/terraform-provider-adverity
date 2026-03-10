@@ -3,12 +3,12 @@
 page_title: "adverity_connection Resource - adverity"
 subcategory: ""
 description: |-
-  (Deprecated, use 'authorization' resource instead) Manages a connection.
+  Manages a connection.
 ---
 
 # adverity_connection (Resource)
 
-(Deprecated, use 'authorization' resource instead) Manages a connection.
+Manages a connection.
 
 ## Example Usage
 
