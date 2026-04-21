@@ -1,3 +1,11 @@
+## 0.2.2
+
+### FIXES:
+
+- Fixed an inconsistent result when modifying the schedule(s) of a datastream (this time for real)
+- Fixed broken deployments of datastreams with no schedule definition
+- Validate conflicting attributes in schedule configurations
+
 ## 0.2.1
 
 ### FIXES:
