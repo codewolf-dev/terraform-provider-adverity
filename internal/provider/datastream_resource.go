@@ -646,6 +646,20 @@ func (r *datastreamResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *datastreamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Split the composite import ID (<datastream_type_id>:<id>) into its parts
+	parts := utils.SplitImportParts(req.ID, 2, "<datastream_type_id>:<id>", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Parse each part as an integer
+	dsTypeId := utils.ParseImportPartInt(parts[0], "datastream_type_id", &resp.Diagnostics)
+	id := utils.ParseImportPartInt(parts[1], "id", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the parsed values in
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("datastream_type_id"), dsTypeId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }

@@ -274,6 +274,6 @@ func (r *workspaceResource) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 func (r *workspaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Retrieve import slug and save to slug attribute, since slug is used for workspaces retrieval
+	resource.ImportStatePassthroughID(ctx, path.Root("slug"), req, resp)
 }
