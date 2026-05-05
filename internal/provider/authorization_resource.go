@@ -264,6 +264,20 @@ func (r *authorizationResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *authorizationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Split the composite import ID (<authorization_type_id>:<id>) into its parts
+	parts := utils.SplitImportParts(req.ID, 2, "<authorization_type_id>:<id>", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Parse each part as an integer
+	authTypeId := utils.ParseImportPartInt(parts[0], "authorization_type_id", &resp.Diagnostics)
+	id := utils.ParseImportPartInt(parts[1], "id", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the parsed values in state
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("authorization_type_id"), authTypeId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }

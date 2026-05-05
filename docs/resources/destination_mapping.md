@@ -80,6 +80,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Destination mapping can be imported by specifying it's numeric id.
-terraform import adverity_destination_mapping.example 123
+# Destination mapping can be imported by specifying the destination type id, destination id, and mapping id, separated by colons.
+terraform import adverity_destination_mapping.example 43:67:812
 ```

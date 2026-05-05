@@ -104,6 +104,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Datastream can be imported by specifying it's numeric id.
-terraform import adverity_datastream.example 123
+# Datastream can be imported by specifying the datastream type id and the datastream id, separated by a colon.
+terraform import adverity_datastream.example 43:812
 ```

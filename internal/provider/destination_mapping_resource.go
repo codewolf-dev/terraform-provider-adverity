@@ -288,6 +288,22 @@ func (r *destinationMappingResource) Delete(ctx context.Context, req resource.De
 }
 
 func (r *destinationMappingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Split the composite import ID (<destination_type_id>:<destination_id>:<id>) into its parts
+	parts := utils.SplitImportParts(req.ID, 3, "<destination_type_id>:<destination_id>:<id>", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Parse each part as an integer
+	destTypeId := utils.ParseImportPartInt(parts[0], "destination_type_id", &resp.Diagnostics)
+	destId := utils.ParseImportPartInt(parts[1], "destination_id", &resp.Diagnostics)
+	id := utils.ParseImportPartInt(parts[2], "id", &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the parsed values in state
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("destination_type_id"), destTypeId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("destination_id"), destId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }

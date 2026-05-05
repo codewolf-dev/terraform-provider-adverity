@@ -64,6 +64,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Connection can be imported by specifying it's numeric id.
-terraform import adverity_connection.example 123
+# Connection can be imported by specifying the connection type id and the connection id, separated by a colon.
+terraform import adverity_connection.example 43:812
 ```

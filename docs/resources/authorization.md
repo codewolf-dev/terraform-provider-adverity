@@ -62,6 +62,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Authorization can be imported by specifying it's numeric id.
-terraform import adverity_authorization.example 123
+# Authorization can be imported by specifying the authorization type id and the authorization id, separated by a colon.
+terraform import adverity_authorization.example 43:812
 ```
