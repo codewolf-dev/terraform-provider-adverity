@@ -1,3 +1,9 @@
+## 0.2.3
+
+### FIXES:
+
+- Fixed resource imports by using all required IDs for subsequent reads on the API
+
 ## 0.2.2
 
 ### FIXES:
