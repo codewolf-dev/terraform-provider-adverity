@@ -50,6 +50,7 @@ func (p *AdverityProvider) Schema(ctx context.Context, req provider.SchemaReques
 			"auth_token": schema.StringAttribute{
 				Description: "Authentication token for Adverity API. May also be provided via ADVERITY_AUTH_TOKEN environment variable.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 		},
 	}
@@ -123,7 +124,7 @@ func (p *AdverityProvider) Configure(ctx context.Context, req provider.Configure
 
 	if authToken == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("auh_token"),
+			path.Root("auth_token"),
 			"Missing Adverity auth token",
 			"The provider cannot create the Adverity API client as there is a missing or empty value for the Adverity auth token. "+
 				"Set the username value in the configuration or use the ADVERITY_AUTH_TOKEN environment variable. "+
