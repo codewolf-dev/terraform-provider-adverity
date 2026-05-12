@@ -23,5 +23,5 @@ provider "adverity" {
 
 ### Optional
 
-- `auth_token` (String) Authentication token for Adverity API. May also be provided via ADVERITY_AUTH_TOKEN environment variable.
-- `instance_url` (String) Instance URL pointing to Adverity API (e.g. <placeholder>.datatap.adverity.com). May also be provided via ADVERITY_INSTANCE_URL environment variable.
+- `auth_token` (String, Sensitive) Authentication token for Adverity API. May also be provided via ADVERITY_AUTH_TOKEN environment variable.
+- `instance_url` (String) Instance URL pointing to Adverity API (e.g. <your-instance>.datatap.adverity.com). May also be provided via ADVERITY_INSTANCE_URL environment variable.

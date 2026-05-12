@@ -1,3 +1,11 @@
+## 0.2.4
+
+### FIXES:
+
+- Fixed an inconsistent result when modifying the schedule(s) of a datastream caused by an Adverity API quirk that silently drops cron fields when datatype is included in the same request (0.2.2 only fixed this partially)
+- Fixed the conversion of float numbers in parameters
+- Validate instance URL format, schema and host
+
 ## 0.2.3
 
 ### FIXES:
