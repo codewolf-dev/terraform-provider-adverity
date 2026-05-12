@@ -30,7 +30,7 @@ const (
 	// such as updating the Makefile and running the testing through that tool.
 	providerConfig = `
 provider "adverity" {
-  instance_url = "some-instance-url"
+  instance_url = "https://some-instance.datatap.adverity.com"
   auth_token   = "some-auth-token"
 }
 `
