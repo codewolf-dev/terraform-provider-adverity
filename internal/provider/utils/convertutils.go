@@ -54,7 +54,7 @@ func ConvertNumber(n types.Number) (interface{}, error) {
 		intVal, _ := bigFloat.Int64()
 		return intVal, nil
 	} else {
-		floatVal, _ := bigFloat.Int64()
+		floatVal, _ := bigFloat.Float64()
 		return floatVal, nil
 	}
 }
