@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"net/url"
 	"os"
 	"terraform-provider-adverity/internal/adverity"
 
@@ -44,7 +45,7 @@ func (p *AdverityProvider) Schema(ctx context.Context, req provider.SchemaReques
 		Description: "Interact with Adverity.",
 		Attributes: map[string]schema.Attribute{
 			"instance_url": schema.StringAttribute{
-				Description: "Instance URL pointing to Adverity API (e.g. <placeholder>.datatap.adverity.com). May also be provided via ADVERITY_INSTANCE_URL environment variable.",
+				Description: "Instance URL pointing to Adverity API (e.g. <your-instance>.datatap.adverity.com). May also be provided via ADVERITY_INSTANCE_URL environment variable.",
 				Optional:    true,
 			},
 			"auth_token": schema.StringAttribute{
@@ -120,6 +121,30 @@ func (p *AdverityProvider) Configure(ctx context.Context, req provider.Configure
 				"Set the host value in the configuration or use the ADVERITY_INSTANCE_URL environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
+	} else {
+		parsedUrl, err := url.Parse(instanceUrl)
+		switch {
+		case err != nil:
+			resp.Diagnostics.AddAttributeError(
+				path.Root("instance_url"),
+				"Invalid Adverity instance URL",
+				"The instance URL could not be parsed: "+err.Error(),
+			)
+		case parsedUrl.Scheme != "https":
+			resp.Diagnostics.AddAttributeError(
+				path.Root("instance_url"),
+				"Insecure Adverity instance URL",
+				"The instance URL must use HTTPS."+
+					"Got scheme: "+parsedUrl.Scheme+". "+
+					"Set the value to https://<your-instance>.datatap.adverity.com.",
+			)
+		case parsedUrl.Host == "":
+			resp.Diagnostics.AddAttributeError(
+				path.Root("instance_url"),
+				"Invalid Adverity instance URL",
+				"The instance URL must include a host, e.g. https://<your-instance>.datatap.adverity.com.",
+			)
+		}
 	}
 
 	if authToken == "" {
