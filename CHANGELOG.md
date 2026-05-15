@@ -1,3 +1,9 @@
+## 0.2.5
+
+### FIXES:
+
+- Fixed provider checksum mismatch
+
 ## 0.2.4
 
 ### FIXES:
