@@ -59,7 +59,7 @@ resource "adverity_datastream" "datastream" {
 ### Optional
 
 - `auth_id` (Number) Numeric identifier of the connection.
-- `datatype` (String) Type of the datastream ('Live' or 'Staging').
+- `datatype` (String, Deprecated) Type of the datastream ('Live' or 'Staging'). Deprecated: this value is derived from whether the datastream's destinations are enabled. Setting it directly causes side effects on datastream updates.
 - `description` (String) Description of the datastream.
 - `enabled` (Boolean) Whether to enable the datastream.
 - `extract_name_keys` (String) Date column to use for managing extract names.

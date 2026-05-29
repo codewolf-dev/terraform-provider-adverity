@@ -252,9 +252,10 @@ func (r *datastreamResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Optional:    true,
 			},
 			"datatype": schema.StringAttribute{
-				Description: "Type of the datastream ('Live' or 'Staging').",
-				Optional:    true,
-				Computed:    true,
+				Description:        "Type of the datastream ('Live' or 'Staging'). Deprecated: this value is derived from whether the datastream's destinations are enabled. Setting it directly causes side effects on datastream updates.",
+				Optional:           true,
+				Computed:           true,
+				DeprecationMessage: "The 'datatype' attribute is deprecated and will be removed in a future release. It is derived from destination enablement, and writing it causes side effects on datastream updates. Manage destination state via the destinations instead.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

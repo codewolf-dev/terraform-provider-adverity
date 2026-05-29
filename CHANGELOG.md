@@ -1,3 +1,10 @@
+## 0.2.6
+
+### DEPRECATIONS
+
+Resource:
+- `datatype` on `adverity_datastream` is deprecated and will be removed in a future release. It is derived from whether the datastream's destinations are enabled. Manage destination state via the `adverity_destination` resource instead.
+
 ## 0.2.5
 
 ### FIXES:
